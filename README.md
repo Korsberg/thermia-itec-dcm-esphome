@@ -172,6 +172,10 @@ This is a free hobby project, shared as it is. If it saved you time or helped yo
 
 - [ryckema/Thermia_itec](https://github.com/ryckema/Thermia_itec) for the iTec protocol work this builds on, and for the forum discussion that cross-checked several registers (`0864` word 1 status bits, `0553` operating mode, `0848` heat demand, the immersion heater bits).
 - [piotr-romanowski/thermia-bus-sniffer](https://github.com/piotr-romanowski/thermia-bus-sniffer) for the passive bus notes.
+
+- [fclauson/Thermia-ATEC-ESP-emulator-of-DCOM](https://github.com/fclauson/Thermia-ATEC-ESP-emulator-of-DCOM) for the CM930 handshake calculation this firmware's challenge response is derived from (MIT).
+
+
 - The Home Assistant community thread on local Thermia iTec integration.
 
 ## License
