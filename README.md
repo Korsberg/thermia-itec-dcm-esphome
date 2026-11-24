@@ -106,7 +106,7 @@ The same values in the Home Assistant dashboard:
 ![Home Assistant dashboard](dashboard.png)
 
 
-| Heat Pump display |
+Heat Pump display 
 
 ![Thermia display, INFO UTEDEL](thermia-display.png)
 
