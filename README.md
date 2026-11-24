@@ -98,9 +98,9 @@ Towards writing to the pump (research, not implemented, nothing is sent today):
 
 The repository will include a dashboard with one card per pump menu, a card with power, compressor frequency and electricity price, and a card for defrost tracking.
 
-The values in Home Assistant are checked against the pump's own display. Here is the INFO UTEDEL menu on the pump while the compressor is running:
+The values in Home Assistant are checked against the pump's own display. The pump's main screen shows the gateway (DCM) symbol once the ESP has answered the handshake and the pump has accepted the gateway:
 
-![Thermia display, INFO UTEDEL](thermia-display.png)
+![Thermia display with the DCM symbol](thermia-display.png)
 
 The same values in the Home Assistant dashboard:
 
