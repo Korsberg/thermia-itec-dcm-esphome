@@ -1,4 +1,4 @@
-#  Thermia iTec XT10: read-only DCM gateway emulation with ESPHome
+# Thermia iTec XT10: read-only DCM gateway emulation with ESPHome
 
 A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec XT10** air/water heat pump, running on an **ESP32-S3** with an RS485 transceiver and **ESPHome**. It lets Home Assistant read the heat pump's runtime values and menu settings locally, without the cloud and without writing anything to the pump.
 
@@ -65,14 +65,14 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 | TILLSATS (max steps, start, delay) | `0456`, `0457`, `0459`, `0461` | yes |
 | OPTIMUM flows, charge temperatures, circulation | `0492` to `049C` | yes |
 | INFO UTEDEL: compressor Hz, max frequency ratio, current, fan rpm | page `0820` | yes |
-| INFO UTEDEL: high pressure, expansion valve steps and percent | page `0820` words 16 and 13 | yes (standby values) |
+| INFO UTEDEL: high pressure (word 16, /10 bar), expansion valve steps (word 13) and percent (steps / 20) | page `0820` | yes (standby and running) |
 | Heat demand in degree-minutes | page `0848` word 0 (sign inverted) | yes |
 | Compressor start at -50, stop at +50 degree-minutes | observed over two runs | yes |
 | Pump clock | page `0848` words 16 to 22 | yes |
 | Serial number, COMM.KIT and MAIN MICOM versions | `06F2/06F3`, `07E4` | yes |
 | Operating hours, defrost count and intervals | page `0870` | yes |
 
-Items still marked as candidates: EQ / OPTIMUM / ZONER flags, several status bits (`0864`, `07E4 word 16`), the defrost flag, SATT TEMP and BEKRÄFTAD TEMP, and pressure and valve values while the compressor is running.
+Items still marked as candidates: EQ / OPTIMUM / ZONER flags, several status bits (`0864`, `07E4 word 16`), the defrost flag, and SATT TEMP and BEKRÄFTAD TEMP.
 
 ## Home Assistant
 
