@@ -1,5 +1,7 @@
 # Thermia iTec XT10: read-only DCM gateway emulation with ESPHome
+
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.me/peterssm)
+
 A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec XT10** air/water heat pump, running on an **ESP32-S3** with an RS485 transceiver and **ESPHome**. It lets Home Assistant read the heat pump's runtime values and menu settings locally, without the cloud and without writing anything to the pump.
 
 > **Status: work in progress.** The ESP answers the pump's gateway handshake automatically after every pump start and then reads the pump for hours at a time. Most sensors are verified against the pump display, most settings were verified by changing the value on the display one step and watching which register moved. The rest are marked as candidates (see below). The handshake code is not published yet.
