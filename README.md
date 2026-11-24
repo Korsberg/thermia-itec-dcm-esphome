@@ -83,11 +83,20 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 
 Items still marked as candidates: EQ / OPTIMUM / ZONER flags, several status bits (`0864`, `07E4 word 16`), the defrost flag, and SATT TEMP and BEKRÄFTAD TEMP.
 
+## Roadmap
+
+Next firmware step (read-only):
+- Log the raw content of every page the pump sends outside the start-up export, for example when a setting is changed on the pump display, and update the cached values so the sensors follow the display. Today a changed setting is only picked up at the next session start.
+- Acknowledge such pushed configuration pages with the same transport-level acknowledgement used for the exported pages, instead of stopping the session.
+- Raw dump of page `0820` to identify SATT TEMP and BEKRÄFTAD TEMP, and clean sensor names for everything verified.
+
+Towards writing to the pump (research, not implemented, nothing is sent today):
+- Capture how a change made on the pump display is reported to the gateway (frame, timing, value), then how a real gateway reports a change in the other direction. Nobody has published a confirmed write yet: a direct master write was reported as acknowledged but ignored, and gateway acknowledgements are transport-level only.
+- If it becomes possible: a single harmless, reversible parameter first, with the owner present, read-back from the next configuration page, and an immediate revert on any deviation. No guessed frames.
+
 ## Home Assistant
 
 The repository will include a dashboard with one card per pump menu, a card with power, compressor frequency and electricity price, and a card for defrost tracking.
-
-![Thermia display](thermia-display.png)
 
 ![Home Assistant dashboard](dashboard.png)
 
