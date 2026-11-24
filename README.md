@@ -86,7 +86,7 @@ Items still marked as candidates: EQ / OPTIMUM / ZONER flags, several status bit
 ## Home Assistant
 
 The repository will include a dashboard with one card per pump menu, a card with power, compressor frequency and electricity price, and a card for defrost tracking.
-
+[Thermia Display](00BDDD3D-ED5A-4B5C-B649-7228C8C379A2_1_201_a.heic)
 ![Home Assistant dashboard](dashboard.png)
 
 ## Safety
