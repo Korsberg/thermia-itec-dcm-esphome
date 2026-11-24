@@ -14,7 +14,7 @@ A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec
 - Two session losses today, both fixed:
   - An isolation gate that was too strict ended the session when 5 stray bytes appeared on the bus in one runtime page. Since v36 a failed gate only skips that ACK (the pump retries the page) and the session stops only after 5 failures in a row.
   - An unrecognised page (a re-sent configuration page after a setting change) ended the session. Since v37 such pages are recognised by address and length and ACKed.
-- Heating cycle observed from start: start phase (`0864` word 2 bit 0, 64 s and 127 s in two runs), then heating active when the start phase ends. Heat demand jumps from about -50 to -15 degree-minutes at compressor start. The natural stop has not been captured yet in this firmware.
+- Heating cycle observed from start to stop: start phase (`0864` word 2 bit 0, 64 s and 127 s in two runs), then heating active when the start phase ends. Heat demand jumps from about -50 to -15 degree-minutes at compressor start. A natural stop was captured on 24 November at 20:04: heat demand reached +50 degree-minutes (the STOPP setting), the compressor stopped after 122 minutes, and heat demand fell back to +5.
 - Still open: defrost flags, top-up (legionella) flag, immersion heater bits, a few unknown menu words (see below).
 
 ## What it does
@@ -117,6 +117,7 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 ## Candidates and open items
 
 - Defrost: `0864` word 1 bits 4 and 5 (defrost using building heat / hot water heat) and `0820` word 15 (`082F`) bit 2. Never seen set yet, there has been no defrost since logging started.
+- Page `0870` counters read on 24 November: 857 defrosts, last interval 438 min, operating hours 7074 / 6575 / 486. They show that defrosting happens, but the defrost flags themselves have not been seen set.
 - Top-up (legionella) flag: `0864` word 1 bit 2. Never seen set yet. Interval is 7 days, stop temperature 60 C.
 - Immersion heater status: `07D0` words 13 and 14 (`07DD` mask 0x80, `07DE` masks 0x10 and 0x08), taken from a forum report. Not yet seen active.
 - Unknown menu words in the `03E8` page: `03F1` = 40, `03F2` = 30, `03F5` = 2. In the TILLSATS page: `0458` = 20, `045B` = 6.
@@ -127,7 +128,7 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 
 Done in v37: log the raw content of configuration pages that the pump re-sends outside the start-up export, ACK them transport-only, and update the cached values so the sensors follow the display.
 
-Next firmware step (v38, read-only, ready): candidate sensors for `082F` bit 2, the three immersion heater bits and raw words `03F1`, `03F2`, `03F5`.
+Next firmware step (v38, read-only, ready, not yet flashed): candidate sensors for `082F` bit 2, the three immersion heater bits, raw words `03F1`, `03F2`, `03F5`, and the AVFROSTNING menu words `047E` (KOMPR. STOPP) and `047F` (ENERGIPRIO.VV).
 
 Towards writing to the pump (research, not implemented, nothing is sent today):
 - Capture how a change made on the pump display is reported to the gateway (frame, timing, value), then how a real gateway reports a change in the other direction. Nobody has published a confirmed write yet: a direct master write was reported as acknowledged but ignored, and gateway acknowledgements are transport-level only.
