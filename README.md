@@ -137,7 +137,22 @@ The repository will include a dashboard with expandable groups in the order of t
 
 Tip: if you rename entities, rename them in Home Assistant, not in the firmware. A new name in the firmware creates a new entity and leaves the old one orphaned.
 
-![Home Assistant dashboard](dashboard.png)
+The values in Home Assistant are checked against the pump's own display. The pump's main screen shows the gateway (DCM) symbol once the ESP has answered the handshake and the pump has accepted the gateway:
+
+![Thermia display with the DCM symbol](thermia-display.png)
+
+The same values in the Home Assistant dashboard:
+
+![Home Assistant dashboard, overview](dashboard_1.png)
+
+![Home Assistant dashboard, menus](dashboard_2.png)
+
+![Home Assistant dashboard, flow card](dashboard_3.png)
+
+
+Short video of the animated flow card (heat pump, tank level, heating and hot water states):
+
+[Watch the flow card video](https://github.com/Korsberg/thermia-itec-dcm-esphome/blob/main/IMG_5585.mov)
 
 ## Safety
 
