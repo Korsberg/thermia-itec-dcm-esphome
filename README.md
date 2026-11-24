@@ -98,6 +98,12 @@ Towards writing to the pump (research, not implemented, nothing is sent today):
 
 The repository will include a dashboard with one card per pump menu, a card with power, compressor frequency and electricity price, and a card for defrost tracking.
 
+The values in Home Assistant are checked against the pump's own display. Here is the INFO UTEDEL menu on the pump while the compressor is running:
+
+![Thermia display, INFO UTEDEL](thermia-display.png)
+
+The same values in the Home Assistant dashboard:
+
 ![Home Assistant dashboard](dashboard.png)
 
 ## Safety
