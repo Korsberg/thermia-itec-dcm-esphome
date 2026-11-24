@@ -2,7 +2,7 @@
 
 A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec XT10** air/water heat pump, running on an **ESP32-S3** with an RS485 transceiver and **ESPHome**. It lets Home Assistant read the heat pump's runtime values and menu settings locally, without the cloud and without writing anything to the pump.
 
-> **Status: work in progress.** The ESP answers the pump's gateway handshake automatically after every power-up and then reads the pump for days without errors. Most sensors are verified against the pump display; the rest are marked as candidates (see below). The handshake code is not published yet.
+> **Status: work in progress.** The ESP answers the pump's gateway handshake automatically after every power-up and then reads the pump for many hours at a time without errors. Most sensors are verified against the pump display; the rest are marked as candidates (see below). The handshake code is not published yet.
 
 ## Current status (24 November 2026)
 
@@ -18,7 +18,7 @@ A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec
 - Answers the pump's gateway challenge on slave address `0x0F` (RS485, 9600 baud, 8E1), automatically after each pump start, with no button press and no time limit.
 - Acknowledges the 31 configuration pages the pump exports at start-up and the ten runtime pages that follow, and answers the `0708` mailbox. These acknowledgements are transport-level only.
 - Decodes the received pages into Home Assistant sensors named like the pump's display menus (VARMVATTEN, VÄRME, TILLSATS, OPTIMUM, INFO UTEDEL, INSTALLATION, KALENDER and others).
-- Reboots itself and re-arms if the pump restarts and the session is lost.
+- Includes a watchdog that reboots the ESP and re-arms it if the session with the pump is lost (built in, not yet exercised).
 
 ## What it does not do
 
@@ -76,7 +76,7 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 | INFO UTEDEL: compressor Hz, max frequency ratio, current, fan rpm | page `0820` | yes |
 | INFO UTEDEL: high pressure (word 16, /10 bar), expansion valve steps (word 13) and percent (steps / 20) | page `0820` | yes (standby and running) |
 | Heat demand in degree-minutes | page `0848` word 0 (sign inverted) | yes |
-| Compressor start at -50, stop at +50 degree-minutes | observed over two runs | yes |
+| Compressor start at -50, stop at +50 degree-minutes | observed over three runs | yes |
 | Pump clock | page `0848` words 16 to 22 | yes |
 | Serial number, COMM.KIT and MAIN MICOM versions | `06F2/06F3`, `07E4` | yes |
 | Operating hours, defrost count and intervals | page `0870` | yes |
