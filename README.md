@@ -152,7 +152,7 @@ The same values in the Home Assistant dashboard:
 
 Short video of the animated flow card (heat pump, tank level, heating and hot water states):
 
-[Watch the flow card video](https://github.com/Korsberg/thermia-itec-dcm-esphome/blob/main/IMG_5585.mov)
+[Watch the flow card video](https://github.com/Korsberg/thermia-itec-dcm-esphome/raw/main/IMG_5585.mov)
 
 ## Safety
 
