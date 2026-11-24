@@ -22,7 +22,7 @@ A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec
 |---|---|
 | ESP32-S3 DevKitC-1 N16R8 | UART on GPIO17 (TX), GPIO18 (RX) |
 | DollaTek 5 V MAX485 / RS485 module (TTL to RS-485) | DE/RE on GPIO21 |
-| 3 x 4.7 kOhm resistors | wiring: to be added |
+| 3 x 4.7 kOhm resistors | voltage divider on RO, see Wiring |
 | Thermia iTec XT10 with Total EQ | display firmware CM930 2.4.0, COMM.KIT 2310 1801, MAIN MICOM 2207 601 |
 
 ### Wiring
