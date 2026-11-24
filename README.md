@@ -105,7 +105,8 @@ The values in Home Assistant are checked against the pump's own display. The pum
 The same values in the Home Assistant dashboard:
 
 ![Home Assistant dashboard](dashboard_1.png)
-
+![Home Assistant dashboard](dashboard_3.png)
+![Home Assistant dashboard](dashboard_3.png)
 ## Safety
 
 This is an independent hobby project and is not affiliated with Thermia. Use it at your own risk. It only reads, but it does connect a custom device to your pump's service bus.
