@@ -149,6 +149,11 @@ The same values in the Home Assistant dashboard:
 
 ![Home Assistant dashboard, flow card](dashboard_3.png)
 
+
+Short video of the animated flow card (heat pump, tank level, heating and hot water states):
+
+[Watch the flow card video](https://github.com/Korsberg/thermia-itec-dcm-esphome/blob/main/IMG_5585.mov)
+
 ## Safety
 
 This is an independent hobby project and is not affiliated with Thermia. Use it at your own risk. It only reads, but it does connect a custom device to your pump's service bus.
