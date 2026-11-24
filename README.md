@@ -1,4 +1,3 @@
-# thermia-itec-dcm-esphome
 # Thermia iTec XT10: read-only DCM gateway emulation with ESPHome
 
 A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec XT10** air/water heat pump, running on an **ESP32-S3** with an RS485 transceiver and **ESPHome**. It lets Home Assistant read the heat pump's runtime values and menu settings locally, without the cloud and without writing anything to the pump.
@@ -40,7 +39,18 @@ A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec
 | green | B |
 | blue | ground |
 
-The three 4.7 kOhm resistors and the module supply voltage are still to be documented.
+The module is powered from the 5 V pin of the ESP32-S3 board. Its RO output swings to 5 V, so it is level-shifted to the 3.3 V GPIO with a resistor divider made of the three 4.7 kOhm resistors:
+
+```
+RO --+-- 4.7k --+-- GPIO18
+     +-- 4.7k --+      (two 4.7k in parallel = 2.35k)
+                |
+               4.7k
+                |
+               GND
+```
+
+This gives about 5 V x 4.7 / (2.35 + 4.7) = 3.3 V at GPIO18. DI and DE/RE are driven directly from the 3.3 V GPIOs, which the MAX485 accepts as a logic high.
 
 Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is running a service operation, and use it at your own risk.
 
