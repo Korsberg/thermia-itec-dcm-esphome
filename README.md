@@ -1,4 +1,4 @@
-# Thermia iTec XT10: read-only DCM gateway emulation with ESPHome
+#  Thermia iTec XT10: read-only DCM gateway emulation with ESPHome
 
 A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec XT10** air/water heat pump, running on an **ESP32-S3** with an RS485 transceiver and **ESPHome**. It lets Home Assistant read the heat pump's runtime values and menu settings locally, without the cloud and without writing anything to the pump.
 
