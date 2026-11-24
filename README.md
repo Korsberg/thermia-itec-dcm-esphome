@@ -105,7 +105,7 @@ The values in Home Assistant are checked against the pump's own display. The pum
 The same values in the Home Assistant dashboard:
 
 ![Home Assistant dashboard](dashboard_1.png)
-![Home Assistant dashboard](dashboard_3.png)
+![Home Assistant dashboard](dashboard_2.png)
 ![Home Assistant dashboard](dashboard_3.png)
 ## Safety
 
