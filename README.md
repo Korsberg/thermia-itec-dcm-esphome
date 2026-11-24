@@ -106,6 +106,12 @@ The same values in the Home Assistant dashboard:
 
 ![Home Assistant dashboard](dashboard.png)
 
+
+| Heat Pump display |
+
+![Thermia display, INFO UTEDEL](thermia-display.png)
+
+
 ## Safety
 
 This is an independent hobby project and is not affiliated with Thermia. Use it at your own risk. It only reads, but it does connect a custom device to your pump's service bus.
