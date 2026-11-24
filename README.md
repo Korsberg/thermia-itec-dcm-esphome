@@ -4,6 +4,15 @@ A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec
 
 > **Status: work in progress.** The ESP answers the pump's gateway handshake automatically after every power-up and then reads the pump for days without errors. Most sensors are verified against the pump display; the rest are marked as candidates (see below). The handshake code is not published yet.
 
+## Current status (24 November 2026)
+
+- The ESP arms itself about 30 s after boot, with no button and no time limit. A watchdog that reboots and re-arms after a lost session is built in but has not been exercised yet.
+- Start-up: 31 of 31 configuration pages are ACKed within about 75 s of the challenge, then the runtime ring. It has run since without errors, CRC failures or dropped frames; a few RESYNC events per minute are ordinary line noise. An earlier run lasted 5.7 hours the same way.
+- Display menus mapped to registers and checked against the pump display: heating curve, hot water, VÄRME (service), TILLSATS, OPTIMUM, INFO UTEDEL, serial number and firmware versions, clock, operating hours and defrost counters.
+- Outdoor unit values verified at standby and with the compressor running: high pressure is `0820` word 16 divided by 10 (display 20.5 bar, log 20.5 bar), expansion valve steps are word 13 (display 204 = 10 %, so percent is steps divided by 20).
+- Compressor start and stop captured three times: start at heat demand -50 degree-minutes, stop at +50.
+- Still open: SATT TEMP and BEKRÄFTAD TEMP on the INFO UTEDEL menu, the defrost flag and a few status bits.
+
 ## What it does
 
 - Answers the pump's gateway challenge on slave address `0x0F` (RS485, 9600 baud, 8E1), automatically after each pump start, with no button press and no time limit.
