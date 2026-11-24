@@ -87,6 +87,8 @@ Items still marked as candidates: EQ / OPTIMUM / ZONER flags, several status bit
 
 The repository will include a dashboard with one card per pump menu, a card with power, compressor frequency and electricity price, and a card for defrost tracking.
 
+![Home Assistant dashboard](dashboard.png)
+
 ## Safety
 
 This is an independent hobby project and is not affiliated with Thermia. Use it at your own risk. It only reads, but it does connect a custom device to your pump's service bus.
