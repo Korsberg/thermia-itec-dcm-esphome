@@ -1,35 +1,62 @@
 # The first captured defrost
 
-Captured on **25 November 2026**, local time (Swedish time, UTC+1), between 11:59:44 and 12:01:52. It lasted about two minutes. Before this, logging had run for days without a defrost, so the flags were only candidates.
+Captured on **25 November 2026**, local time (Swedish time, UTC+1), between 11:59:44 and 12:02:07. The defrost itself lasted about two minutes. Before this, logging had run for days without a defrost, so the flags were only candidates. No other defrost was seen that day (checked against all logs and the Home Assistant history).
 
-## What changed on the bus
+Pump data arrives once per 21 s cycle, and each page is seen once per cycle, so all times below are accurate to about one cycle.
+
+## Timeline
 
 | Time | What |
 |---|---|
-| 11:59:44 | Start of the event in the log |
+| 11:59:44 | `0864` word 0 goes from 0 to **3**, word 2 gets bit 3 (value 8) |
 | 11:59:47 | `0870` defrost count goes from **857 to 858** |
-| 11:59:59 to 12:01:46 | `082F` (word 15 of `0820`) **bit 2** set |
-| 12:00:06 to 12:01:52 | `0864` word 1 **bit 4** set (defrost using building heat) |
-| about 12:01:52 | Defrost ends; values return to the running state |
+| 11:59:59 | `082F` (word 15 of `0820`) **bit 2** set. Compressor 31 to 20 Hz, expansion valve 176 to 1000 steps, high pressure 21.2 to 16.9 bar |
+| 12:00:06 | `0864` word 1 **bit 4** set (defrost using building heat); word 1 = `0x11` |
+| 12:00:21 to 12:00:42 | High pressure falls to 10 bar, expansion valve 2000 steps (100 %), fan 550 to 180 to 0 rpm |
+| 12:01:03 to 12:01:25 | Fan stopped. Compressor up to 50 Hz, the outdoor unit temperature word (`0820` word 5) rises 3, 5, 11, 15 degrees C |
+| 12:01:25 | `082F` bit 2 last seen set |
+| 12:01:31 | `0864` bit 4 last seen set |
+| 12:01:46 to 12:02:07 | Fan back (510, then 550 rpm), expansion valve 481 steps, normal running |
+| 12:01:52 | `0864` word 0 back to 0 |
 
-During the defrost, in the `0820` page:
+## Values during the defrost (`0820` unless noted)
 
-- Expansion valve steps went to 1000, then to 2000 (100 %).
-- Fan speed fell from 550 rpm to 0.
-- High pressure fell from about 21 bar to about 10 bar.
+| Value | Before | During | After |
+|---|---|---|---|
+| Compressor | 31 Hz | 20 Hz, 28 Hz, 50 Hz, 23 Hz | 50 Hz, then 20 to 25 Hz |
+| Expansion valve | 176 steps | 1000, then 2000 (100 %) | 481, then about 175 |
+| High pressure | 21.2 bar | 16.9, 14.9, 10.3, 10.1 bar | 17.3 to 19.3 bar |
+| Fan | 550 rpm | 180, then 0 rpm | 510, then 550 rpm |
+| Current | 2.1 A | 0.5 to 1.9 A | 0.9 to 3.0 A |
+| Supply temperature (`07D0` word 0) | 30 | down to 23 | back to 30 |
+| Return temperature (`07D0` word 2) | 27 | 27 | 27 |
 
-In page `0834`, the high byte of word 10 counted seconds during the event.
+The supply temperature fell by about 7 degrees while the pump defrosted, which fits "defrost using building heat": the heat for the outdoor unit is taken from the heating circuit. The return temperature did not change.
 
-The defrost counter changed at 11:59:47, `082F` bit 2 was first seen at 11:59:59 and `0864` bit 4 at 12:00:06. The pages arrive in a ring about every 21 s, and each page is seen once per cycle, so the start and stop times taken from the flags are only accurate to about one cycle.
+Heat demand (`0848` word 0) counted up by one per cycle before the defrost (33 to 38) and stood still at 38 from 12:00:04 on.
+
+## Counters (`0870`)
+
+| Time | Count (word 11) | Between (word 12) | Since (word 13) |
+|---|---|---|---|
+| 11:59:25 | 857 | 438 | 2377 |
+| 11:59:47 | 858 | **2377** | **0** |
+| 12:06:53 | 858 | 2377 | 6 |
+
+At a defrost the last value of word 13 (2377 minutes, 39 h 37 min) is copied to word 12 and word 13 restarts from 0. Word 13 counts about one per minute, but only while the compressor runs: after a pump restart at 15:26 it stood still at 143.
 
 ## What this means
 
 - `0864` word 1 bit 4 = **defrost using building heat**: verified.
-- `0820` word 15 (`082F`) bit 2 = defrost flag in the outdoor unit data: verified.
-- `0870` word 11 = defrost count: verified.
+- `0820` word 15 (`082F`) bit 2 = defrost flag in the outdoor unit data: verified. It was set 7 s before bit 4 and released 6 s before it, so it is the earlier signal of the two.
+- `0870` word 11 = defrost count: verified. Words 12 and 13: behaviour verified as described above.
+- `0864` word 0 (value 3) is the earliest signal, 15 to 22 s before bit 4. Candidate: it was seen once, and its bits are not decoded.
+- `0864` word 2 bit 3 and `07E4` word 16 (6 to 10 to 2 to 6) changed around the defrost. Candidates.
 - `0864` word 1 bit 5 (defrost using hot water heat) has not been seen. It may need a hot water cycle that was not running.
-- The "minutes since defrost" counter (`0870` word 13) appears to count compressor running minutes rather than clock minutes; this is a candidate, not proven.
 - The service menu AVFROSTNING items KOMPR. STOPP and ENERGIPRIO.VV (`047E`, `047F`) are both 0 on this pump.
+- The reversing valve cannot be read directly from the pages seen so far. That a valve operates follows from the pressure, temperature and fan changes above, and is not proven.
+
+For an animation or an automation, the safest trigger is bit 4 or `082F` bit 2, whichever comes first.
 
 ## What is still wanted
 

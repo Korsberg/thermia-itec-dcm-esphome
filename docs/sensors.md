@@ -31,6 +31,8 @@ Observation window for "seen": 23 to 25 November 2026 (about two and a half days
 | Compressor start phase | `0864` word 2 bit 0 | 64 s and 127 s in two runs; follows heating start |
 | Compressor start / running | `07E4` word 16 bit 2 / bit 1 | follows the compressor |
 | `07E4` word 0 flag | `07E4` word 0 | active also in standby |
+| Defrost, earliest signal | `0864` word 0 (value 3) | seen once, 15 to 22 s before bit 4 of word 1; bits not decoded |
+| `0864` word 2 bit 3, `07E4` word 16 change | `0864` word 2, `07E4` word 16 | changed around the first defrost |
 | System EQ / OPTIMUM / ZONER | `0546` words 0 to 2 | EQ and OPTIMUM on, ZONER off |
 | Immersion heater 1 / 2 / 3 | `07DD` bit 7, `07DE` bits 4 and 3 | taken from a forum report; never seen active |
 
@@ -40,7 +42,7 @@ Hot water top-up (`0864` word 1 bit 2), pool heating (bit 3), defrost using hot 
 
 ### Unknown
 
-The 16 bits of `0864` word 3. One of them may be the flow switch.
+The 16 bits of `0864` word 3 (always `0x00F0` so far). One of them may be the flow switch.
 
 ## Numeric sensors
 
