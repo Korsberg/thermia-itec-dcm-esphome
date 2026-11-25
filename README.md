@@ -6,15 +6,16 @@ A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec
 
 > **Status: work in progress.** The ESP answers the pump's gateway handshake automatically after every pump start and then reads the pump for hours at a time. Most sensors are verified against the pump display, most settings were verified by changing the value on the display one step and watching which register moved. The rest are marked as candidates (see below). The handshake code is not published yet.
 
-## Current status (24 November 2026, evening)
+## Current status (25 November 2026, morning)
 
 - The ESP arms itself about 30 s after boot, with no button and no time limit. If the session with the pump is lost for 90 s, a watchdog reboots the ESP. The watchdog has been exercised twice (see below).
-- Start-up: 31 of 31 configuration pages are ACKed within about 75 s of the pump's challenge, then the runtime ring of ten pages (about every 21 s) plus the `0708` mailbox. The current firmware (v37) has run since 17:16 without errors, CRC failures or dropped frames.
+- Start-up: 31 of 31 configuration pages are ACKed within about 75 s of the pump's challenge, then the runtime ring of ten pages (about every 21 s) plus the `0708` mailbox. The firmware (v38) ran for about 12 hours overnight without errors, CRC failures or dropped frames, and v39 has run since 08:55 on 25 November.
 - **Settings follow the display live.** When a value is changed on the pump display, the pump re-sends the configuration page (for example `03E8`, 14 words) and expects an ACK. The firmware now ACKs it (transport level only), stores the new words and logs the raw page, so Home Assistant shows the new setting within seconds. Tested with room setpoint, high power, hot water, heating and TILLSATS settings.
 - Two session losses today, both fixed:
   - An isolation gate that was too strict ended the session when 5 stray bytes appeared on the bus in one runtime page. Since v36 a failed gate only skips that ACK (the pump retries the page) and the session stops only after 5 failures in a row.
   - An unrecognised page (a re-sent configuration page after a setting change) ended the session. Since v37 such pages are recognised by address and length and ACKed.
 - Heating cycle observed from start to stop: start phase (`0864` word 2 bit 0, 64 s and 127 s in two runs), then heating active when the start phase ends. Heat demand jumps from about -50 to -15 degree-minutes at compressor start. A natural stop was captured on 24 November at 20:04: heat demand reached +50 degree-minutes (the STOPP setting), the compressor stopped after 122 minutes, and heat demand fell back to +5.
+- v39 (25 November) adds read-only text sensors for the alarm history, the four calendars and concrete drying, decoded against photos of the pump display (see below).
 - Still open: defrost flags, top-up (legionella) flag, immersion heater bits, a few unknown menu words (see below).
 
 ## What it does
@@ -23,6 +24,12 @@ A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec
 - Acknowledges the 31 configuration pages the pump exports at start-up, the ten runtime pages that follow, any configuration page the pump re-sends after a setting change, and answers the `0708` mailbox. All acknowledgements are transport-level only.
 - Decodes the received pages into Home Assistant sensors named like the pump's display menus (VARMVATTEN, VÄRME, TILLSATS, OPTIMUM, INFO UTEDEL, INSTALLATION, KALENDER and others).
 - Includes read-only timers (hot water charge duration and count, time since compressor start).
+
+## How the handshake works
+
+The pump (RS485 master, 9600 baud, 8E1) sends a challenge to gateway address `0x0F` only when the pump itself starts: a Modbus function 17 frame carrying 16 challenge bytes. The ESP calculates the 16-byte answer with the CM930 handshake calculation (a block-cipher style routine, see Credits), checks it against a known test vector at every boot, and answers once per boot, and only if exactly one clean frame was received and nobody else is talking on the bus. When the pump accepts the answer it exports its 31 configuration pages, the ESP acknowledges each page (transport level only), and the runtime pages and the `0708` mailbox follow. The DCM symbol then appears on the pump's main screen.
+
+A passive reader that only listens on the bus never answers the challenge, so the pump never exports its pages to it. That is why this project acts as an active gateway instead.
 
 ## What it does not do
 
@@ -96,6 +103,27 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 | TILLSATS: FRYSSKYDD (0/1) | `0461` | changed |
 | OPTIMUM flows, charge temperatures, circulation | `0492` to `049C` | matched |
 
+### Alarms, calendar and concrete drying (read-only, v39)
+
+All of this is read from the pump, never written. Where a test was done on the display, the value was set back afterwards.
+
+**Alarm history** is in runtime page `0884` (60 words). Each record is 7 words: `[value, 0, 0, hour, day, month, year-2000]`, newest first, so 8 full records fit. Date and hour match the display's alarm menu (hour resolution only). The first word of each record varies between records (44, 2048, 15104, 425, 30 seen) and is shown as "kod" in the sensor text; its meaning is not known. The active alarm page `085F` (5 words) is all zero when there is no alarm. All the alarms so far show the same text on the display (communication error with the gateway), which matches ESP restarts and lost sessions.
+
+**Calendar** is in configuration pages `055A` to `06C5` (396 words): four calendars of 98 words (VARMV. BLOCK., EVU, LJUDLÄGE, TEMP. SÄNKNING), each with 8 period slots of 12 words and 2 status words. The display shows only the first slot. Period layout, verified by changing values on the display:
+
+| Word | Meaning |
+|---|---|
+| 0 | TIDSFUNKTION: 0 = DATUM, 1 = DAGAR/VECKA |
+| 1, 2 | start minute, start hour |
+| 3, 4, 5 | start day, month, year - 2000 |
+| 6, 7 | stop minute, stop hour |
+| 8, 9, 10 | stop day, month, year - 2000 |
+| 11 | weekday bitmask for DAGAR/VECKA (Monday = bit 0, Wednesday = bit 2 verified; the other days are assumed) |
+
+The default is 31-DEC-2000 00:00 (stored as day 31, month 12, year 0). The second status word of each calendar (word 97 of the 98) is the "active now" flag, shown as a star on the display. It was seen to switch on during an active DAGAR/VECKA period and off again when the period ended.
+
+**Concrete drying (BETONGTORKNING)** is in page `04D8` (27 words): start day, month, year - 2000, minute, hour, hysteresis, number of points, then 10 pairs of (last day, temperature). The display derives "DAG 2 - 3" from the previous pair's last day plus one. The on/off switch of the function has not been located.
+
 ### Runtime values
 
 | Display menu / value | Where it comes from | Verified |
@@ -128,7 +156,9 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 
 Done in v37: log the raw content of configuration pages that the pump re-sends outside the start-up export, ACK them transport-only, and update the cached values so the sensors follow the display.
 
-Next firmware step (v38, read-only, ready, not yet flashed): candidate sensors for `082F` bit 2, the three immersion heater bits, raw words `03F1`, `03F2`, `03F5`, and the AVFROSTNING menu words `047E` (KOMPR. STOPP) and `047F` (ENERGIPRIO.VV).
+Done in v38: candidate sensors for `082F` bit 2, the three immersion heater bits, raw words `03F1`, `03F2`, `03F5`, and the AVFROSTNING menu words `047E` (KOMPR. STOPP) and `047F` (ENERGIPRIO.VV).
+
+Done in v39 (read-only): text sensors for alarm history 1 to 8, the active alarm, the four calendars (first period) and concrete drying. Next: wait for the first defrost and compare the candidate flags.
 
 Towards writing to the pump (research, not implemented, nothing is sent today):
 - Capture how a change made on the pump display is reported to the gateway (frame, timing, value), then how a real gateway reports a change in the other direction. Nobody has published a confirmed write yet: a direct master write was reported as acknowledged but ignored, and gateway acknowledgements are transport-level only.
@@ -171,11 +201,8 @@ This is a free hobby project, shared as it is. If it saved you time or helped yo
 ## Credits
 
 - [ryckema/Thermia_itec](https://github.com/ryckema/Thermia_itec) for the iTec protocol work this builds on, and for the forum discussion that cross-checked several registers (`0864` word 1 status bits, `0553` operating mode, `0848` heat demand, the immersion heater bits).
+- [fclauson/Thermia-ATEC-ESP-emulator-of-DCOM](https://github.com/fclauson/Thermia-ATEC-ESP-emulator-of-DCOM) for the CM930 handshake calculation that the challenge response in this firmware is derived from (MIT license).
 - [piotr-romanowski/thermia-bus-sniffer](https://github.com/piotr-romanowski/thermia-bus-sniffer) for the passive bus notes.
-
-- [fclauson/Thermia-ATEC-ESP-emulator-of-DCOM](https://github.com/fclauson/Thermia-ATEC-ESP-emulator-of-DCOM) for the CM930 handshake calculation this firmware's challenge response is derived from (MIT).
-
-
 - The Home Assistant community thread on local Thermia iTec integration.
 
 ## License
