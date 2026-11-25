@@ -135,4 +135,4 @@ This is a free hobby project, shared as it is. If it saved you time or helped yo
 
 ## License
 
-To be decided before the code is published.
+MIT, see [LICENSE](LICENSE). The handshake calculation is derived from MIT-licensed code by Francis Clauson, see [NOTICE.md](NOTICE.md).
