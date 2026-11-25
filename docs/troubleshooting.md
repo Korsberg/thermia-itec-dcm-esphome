@@ -16,7 +16,7 @@ The receiver resynchronised on a frame header. Over long runs this is about 6-10
 
 Before ACKing a runtime page the firmware checks that the page arrived alone. If something else is pending in the UART, that one ACK is skipped (`GATE_FAIL_SKIP streak=N`), the session is kept and the pump re-sends the page. After 5 failures in a row the session stops (`GATE_FAIL_LIMIT`).
 
-This happened once in a long run: on 25 November at 10:04 the pump sent page `0820` five times in eight seconds, each time with 5 bytes pending in the UART (`uart=5`, `pending=0`, `drops=0`). The watchdog rebooted the ESP at 10:06:03 and the session was back after a pump restart, with all 31 pages exported at 10:14. The content of the 5 bytes is not known.
+This happened once in a long run: on 25 November at 10:04 the pump sent page `0820` five times in eight seconds, each time with 5 bytes pending in the UART (`uart=5`, `pending=0`, `drops=0`). The watchdog rebooted the ESP at 10:06:03 and the session was back after a pump restart, with all 31 pages exported at 10:14. It happened again on 25 November at 20:15 (five failures on page `0820`, `uart=5`, session stopped; single failures at 19:45 and 20:13 recovered on the pump's retry). Since v40c the ESP is not rebooted automatically, so it stayed stopped until the power was cycled and the pump restarted. The content of the 5 bytes is not known; v40e logs them (`GATE_EXTRA_BYTES`).
 
 ## `SESSION_WAITING` and `SESSION_WAITING_LONG` (v40c and later)
 
