@@ -64,6 +64,44 @@ Not read from the pump.
 - Gateway health: bus OK, armed, time since last frame, frames seen, resync share, counters of pages and ACKs.
 - The event log used for fault finding. A read-only capability report for other pump models is planned.
 
+## Step by step: from a pump start to sensors in Home Assistant
+
+What happens as soon as the pump sends. Times are from a real restart on 25 November 2026 (local time).
+
+```mermaid
+sequenceDiagram
+    participant P as Pump (master)
+    participant E as ESP32 (gateway 0x0F)
+    participant H as Home Assistant
+    Note over E: Boot, self-test, ESP listens
+    Note over E: ~30 s after boot: ARMED (20:58:14)
+    P->>E: Challenge, function 17, 16 bytes (pump starts, 20:58:53)
+    E->>P: 16-byte answer, once (CHALLENGE_RESPONSE_SENT)
+    Note over P: Accepts the answer, DCM symbol on the display
+    loop 31 configuration pages
+        P->>E: Page (function 16)
+        E->>P: ACK, transport only
+    end
+    Note over E,H: CONFIG_EXPORT_COMPLETE (20:59:25), settings appear
+    loop about every 21 s
+        P->>E: Ten runtime pages, one about every 2 s
+        E->>P: ACK for each page
+        E->>H: Decoded sensors and flags
+    end
+    loop every few seconds
+        P->>E: Poll 0708
+        E->>P: Stateful reply
+    end
+```
+
+1. **Self-test and listening.** The ESP checks its handshake calculation against a test vector and starts reading the bus.
+2. **Armed.** About 30 s after boot the log shows `ARMED`. A pump start before this is missed.
+3. **Challenge.** Only when the pump itself starts does it send the challenge.
+4. **Answer.** If exactly one clean frame arrived and nobody else is talking, the ESP answers once. The pump shows the DCM symbol when it accepts.
+5. **Configuration export.** 31 pages, each ACKed and stored (32 s in this run, up to about 75 s).
+6. **Runtime ring and mailbox.** Ten pages per cycle, each ACKed, plus the `0708` poll. All live values come from here.
+7. **Decode and publish.** Pages become sensors in Home Assistant, and every page passes the isolation gate before it is ACKed.
+
 ## Versions
 
 What changed in each firmware version: [../CHANGELOG.md](../CHANGELOG.md).
