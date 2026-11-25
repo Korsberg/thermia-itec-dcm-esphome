@@ -4,43 +4,22 @@
 
 A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec XT10** air/water heat pump, running on an **ESP32-S3** with an RS485 transceiver and **ESPHome**. It lets Home Assistant read the heat pump's runtime values and menu settings locally, without the cloud and without writing anything to the pump.
 
-> **Status: work in progress.** The ESP answers the pump's gateway handshake automatically after every pump start and then reads the pump for hours at a time. Most sensors are verified against the pump display, most settings were verified by changing the value on the display one step and watching which register moved. The rest are marked as candidates (see below). The handshake code is not published yet.
+> **Status: work in progress.** The ESP answers the pump's gateway handshake automatically after every pump start and then reads the pump continuously. Most sensors are verified against the pump display, and most settings were verified by changing the value on the display one step and watching which register moved. The rest are marked as candidates, see [docs/sensors.md](docs/sensors.md). The handshake code is not published yet.
 
-## Current status (25 November 2026, morning)
-
-- The ESP arms itself about 30 s after boot, with no button and no time limit. If the session with the pump is lost for 90 s, a watchdog reboots the ESP. The watchdog has been exercised twice (see below).
-- Start-up: 31 of 31 configuration pages are ACKed within about 75 s of the pump's challenge, then the runtime ring of ten pages (about every 21 s) plus the `0708` mailbox. The firmware (v38) ran for about 12 hours overnight without errors, CRC failures or dropped frames, and v39 has run since 08:55 on 25 November.
-- **Settings follow the display live.** When a value is changed on the pump display, the pump re-sends the configuration page (for example `03E8`, 14 words) and expects an ACK. The firmware now ACKs it (transport level only), stores the new words and logs the raw page, so Home Assistant shows the new setting within seconds. Tested with room setpoint, high power, hot water, heating and TILLSATS settings.
-- Two session losses today, both fixed:
-  - An isolation gate that was too strict ended the session when 5 stray bytes appeared on the bus in one runtime page. Since v36 a failed gate only skips that ACK (the pump retries the page) and the session stops only after 5 failures in a row.
-  - An unrecognised page (a re-sent configuration page after a setting change) ended the session. Since v37 such pages are recognised by address and length and ACKed.
-- Heating cycle observed from start to stop: start phase (`0864` word 2 bit 0, 64 s and 127 s in two runs), then heating active when the start phase ends. Heat demand jumps from about -50 to -15 degree-minutes at compressor start. A natural stop was captured on 24 November at 20:04: heat demand reached +50 degree-minutes (the STOPP setting), the compressor stopped after 122 minutes, and heat demand fell back to +5.
-- v39 (25 November) adds read-only text sensors for the alarm history, the four calendars and concrete drying, decoded against photos of the pump display (see below).
-- Still open: defrost flags, top-up (legionella) flag, immersion heater bits, a few unknown menu words (see below).
+![Home Assistant dashboard, overview](docs/images/dashboard-overview.png)
 
 ## What it does
 
 - Answers the pump's gateway challenge on slave address `0x0F` (RS485, 9600 baud, 8E1), automatically after each pump start, with no button press and no time limit.
 - Acknowledges the 31 configuration pages the pump exports at start-up, the ten runtime pages that follow, any configuration page the pump re-sends after a setting change, and answers the `0708` mailbox. All acknowledgements are transport-level only.
 - Decodes the received pages into Home Assistant sensors named like the pump's display menus (VARMVATTEN, VÄRME, TILLSATS, OPTIMUM, INFO UTEDEL, INSTALLATION, KALENDER and others).
-- Includes read-only timers (hot water charge duration and count, time since compressor start).
-
-## How the handshake works
-
-The pump (RS485 master, 9600 baud, 8E1) sends a challenge to gateway address `0x0F` only when the pump itself starts: a Modbus function 17 frame carrying 16 challenge bytes. The ESP calculates the 16-byte answer with the CM930 handshake calculation (a block-cipher style routine, see Credits), checks it against a known test vector at every boot, and answers once per boot, and only if exactly one clean frame was received and nobody else is talking on the bus. When the pump accepts the answer it exports its 31 configuration pages, the ESP acknowledges each page (transport level only), and the runtime pages and the `0708` mailbox follow. The DCM symbol then appears on the pump's main screen.
-
-A passive reader that only listens on the bus never answers the challenge, so the pump never exports its pages to it. That is why this project acts as an active gateway instead.
+- **Settings follow the display live.** When a value is changed on the pump display, the pump re-sends the configuration page and the ESP ACKs it (transport level only), so Home Assistant shows the new setting within seconds.
+- Reports the ESP32-S3's own health (heap, PSRAM, Wi-Fi, uptime, bus and gateway state) for a "system status" view.
 
 ## What it does not do
 
 - **No writes.** The ESP never changes a pump parameter. There are no setpoint sliders or room sensor writes, by design. Writing blind to a working heat pump can do real damage.
 - No cloud, no account, no vendor app.
-
-## Known behaviour
-
-- The pump sends its gateway challenge only when the pump itself starts. After flashing or rebooting the ESP, the pump has to be restarted to start a new session.
-- Restarting the pump resets the degree-minutes and stops the compressor. Plan firmware updates for a moment when no heating or hot water cycle is running.
-- ESPHome allows one API client at a time, so stop any log script before flashing.
 
 ## Hardware
 
@@ -48,7 +27,7 @@ A passive reader that only listens on the bus never answers the challenge, so th
 |---|---|
 | ESP32-S3 DevKitC-1 N16R8 | UART on GPIO17 (TX), GPIO18 (RX) |
 | DollaTek 5 V MAX485 / RS485 module (TTL to RS-485) | DE/RE on GPIO21 |
-| 3 x 4.7 kOhm resistors | voltage divider on RO, see Wiring |
+| 3 x 4.7 kOhm resistors | voltage divider on RO, see below |
 | Thermia iTec XT10 with Total EQ | display firmware CM930 2.4.0, COMM.KIT 2310 1801, MAIN MICOM 2207 601 |
 
 ### Wiring
@@ -84,113 +63,58 @@ This gives about 5 V x 4.7 / (2.35 + 4.7) = 3.3 V at GPIO18. DI and DE/RE are dr
 
 Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is running a service operation, and use it at your own risk.
 
-## Verified against the pump display
+## Getting started
 
-"Changed" means the value was changed one step on the display, the register was seen to follow, and the value was changed back.
+1. Wire the ESP32-S3 and the RS485 module as above.
+2. Flash the ESPHome firmware (the YAML will be added to this repository, see the roadmap).
+3. Add the device to Home Assistant through the ESPHome integration.
+4. **Restart the pump** about 30 seconds after the ESP has booted. The pump sends its gateway challenge only when the pump itself starts, and the ESP arms itself about 30 s after boot. The DCM symbol appears on the pump's main screen when the pump has accepted the gateway.
+5. The pump then exports its 31 configuration pages (about 75 s) and the sensors fill in. After that the runtime pages arrive about every 21 s.
 
-### Settings (configuration pages)
+![Thermia display with the DCM symbol](docs/images/thermia-display.png)
 
-| Display menu / value | Register | How verified |
-|---|---|---|
-| Heating curve (KURVA), MIN BÖR, MAX BÖR, KURVA +5 / 0 / -5, VÄRMESTOPP, SÄNKNINGSTEMP, RUM FAKTOR | `03E8` to `03F0`, in menu order | matched to display values |
-| Room setpoint | `03F4` (whole degrees C) | changed |
-| HÖG EFFEKT (on/off) | `03F3` (0/1) | changed |
-| Operating mode (off, auto, compressor, additional heat, hot water) | `0553` | matched |
-| VARMVATTEN: START, STOPP | `041D`, `0424` | matched / changed |
-| VARMVATTEN: VARMVATTENTID, TOPPV.INTERVALL, TOPPV.STOPP | `041E`, `041F`, `0421` | changed |
-| VARMVATTEN: INFL. STARTGIV. (stored /5) | `0422` | changed |
-| VÄRME (service): START / STOPP in degree-minutes (displayed = -5 x stored) | `0431`, `0432` | changed |
-| VÄRME (service): STARTTID, VÄRMETID | `0433`, `0434` | changed |
-| TILLSATS: MAX STEG | `0456` | changed |
-| TILLSATS: START (displayed = -15 x stored, so -75 is stored as 5) | `0457` | changed (three points: -75, -60, -90) |
-| TILLSATS: STARTFÖRDRÖJNING | `0459` | changed |
-| TILLSATS: FRYSSKYDD (0/1) | `0461` | changed |
-| OPTIMUM flows, charge temperatures, circulation | `0492` to `049C` | matched |
+### Things to know
 
-### Alarms, calendar and concrete drying (read-only, v39)
-
-All of this is read from the pump, never written. Where a test was done on the display, the value was set back afterwards.
-
-**Alarm history** is in runtime page `0884` (60 words). Each record is 7 words: `[value, 0, 0, hour, day, month, year-2000]`, newest first, so 8 full records fit. Date and hour match the display's alarm menu (hour resolution only). The first word of each record varies between records (44, 2048, 15104, 0, 425, 30 seen, and it changed over time for the same record) and is shown as "kod" in the sensor text; its meaning is not known. The active alarm page `085F` (5 words) is all zero when there is no alarm. All the alarms so far show the same text on the display (communication error with the gateway), which matches ESP restarts and lost sessions.
-
-**Calendar** is in configuration pages `055A` to `06C5` (396 words): four calendars of 98 words (VARMV. BLOCK., EVU, LJUDLÄGE, TEMP. SÄNKNING), each with 8 period slots of 12 words and 2 status words. The display shows only the first slot. Period layout, verified by changing values on the display:
-
-| Word | Meaning |
-|---|---|
-| 0 | TIDSFUNKTION: 0 = DATUM, 1 = DAGAR/VECKA |
-| 1, 2 | start minute, start hour |
-| 3, 4, 5 | start day, month, year - 2000 |
-| 6, 7 | stop minute, stop hour |
-| 8, 9, 10 | stop day, month, year - 2000 |
-| 11 | weekday bitmask for DAGAR/VECKA (Monday = bit 0, Wednesday = bit 2 verified; the other days are assumed) |
-
-The default is 31-DEC-2000 00:00 (stored as day 31, month 12, year 0). The second status word of each calendar (word 97 of the 98) is the "active now" flag, shown as a star on the display. It was seen to switch on during an active DAGAR/VECKA period and off again when the period ended.
-
-**Concrete drying (BETONGTORKNING)** is in page `04D8` (27 words): start day, month, year - 2000, minute, hour, hysteresis, number of points, then 10 pairs of (last day, temperature). The display derives "DAG 2 - 3" from the previous pair's last day plus one. The on/off switch of the function has not been located.
-
-### Runtime values
-
-| Display menu / value | Where it comes from | Verified |
-|---|---|---|
-| INFO UTEDEL: compressor Hz, max frequency ratio, current, fan rpm | page `0820` | yes |
-| INFO UTEDEL: high pressure (word 16, /10 bar), expansion valve steps (word 13) and percent (steps / 20) | page `0820` | yes (standby: 7.1 bar, 2000 steps = 100 %; running: 17.4 bar, 189 steps = 9 %) |
-| INFO UTEDEL: BEKRÄFTAD TEMP | page `0820` word 7 (/10) | yes |
-| INFO UTEDEL: SATT TEMP | derived: word 7 while the compressor runs, otherwise 0 | yes (before start, running, stopped) |
-| Heat demand in degree-minutes | page `0848` word 0 (sign inverted) | yes |
-| Setpoint in brackets after TANK on DRIFTDATA, for example "TANK 26 (29)" | page `0848` words 1 and 2 | likely (one reading) |
-| Heating active, hot water active | `0864` word 1 bit 0 / bit 1 | yes (live) |
-| Compressor start phase | `0864` word 2 bit 0 | yes (live) |
-| Compressor start / running | `07E4` word 16 bit 2 / bit 1 | yes (live) |
-| Hot water temperature (top) | page `07D0` | yes |
-| Pump clock | page `0848` words 16 to 22 | yes |
-| Serial number, COMM.KIT and MAIN MICOM versions | `06F2/06F3`, `07E4` | yes |
-| Operating hours, defrost count and intervals | page `0870` | yes |
-
-## Candidates and open items
-
-- Defrost: `0864` word 1 bits 4 and 5 (defrost using building heat / hot water heat) and `0820` word 15 (`082F`) bit 2. Never seen set yet, there has been no defrost since logging started.
-- Page `0870` counters read on 24 November: 857 defrosts, last interval 438 min, operating hours 7074 / 6575 / 486. They show that defrosting happens, but the defrost flags themselves have not been seen set.
-- Top-up (legionella) flag: `0864` word 1 bit 2. Never seen set yet. Interval is 7 days, stop temperature 60 C.
-- Immersion heater status: `07D0` words 13 and 14 (`07DD` mask 0x80, `07DE` masks 0x10 and 0x08), taken from a forum report. Not yet seen active.
-- Unknown menu words in the `03E8` page: `03F1` = 40, `03F2` = 30, `03F5` = 2. In the TILLSATS page: `0458` = 20, `045B` = 6.
-- Setpoint words 1 and 2 of page `0848` (both 29 at the same time), tank setpoint (likely).
-- EQ / OPTIMUM / ZONER flags (`0546`), and a second block starting at `03FC` that looks like another heating circuit.
-
-## Roadmap
-
-Done in v37: log the raw content of configuration pages that the pump re-sends outside the start-up export, ACK them transport-only, and update the cached values so the sensors follow the display.
-
-Done in v38: candidate sensors for `082F` bit 2, the three immersion heater bits, raw words `03F1`, `03F2`, `03F5`, and the AVFROSTNING menu words `047E` (KOMPR. STOPP) and `047F` (ENERGIPRIO.VV).
-
-Done in v39 (read-only): text sensors for alarm history 1 to 8, the active alarm, the four calendars (first period) and concrete drying. Next: wait for the first defrost and compare the candidate flags.
-
-Towards writing to the pump (research, not implemented, nothing is sent today):
-- Capture how a change made on the pump display is reported to the gateway (frame, timing, value), then how a real gateway reports a change in the other direction. Nobody has published a confirmed write yet: a direct master write was reported as acknowledged but ignored, and gateway acknowledgements are transport-level only.
-- If it becomes possible: a single harmless, reversible parameter first, with the owner present, read-back from the next configuration page, and an immediate revert on any deviation. No guessed frames.
+- The pump sends its gateway challenge only when the pump itself starts. After flashing or rebooting the ESP, the pump has to be restarted to start a new session. A pump restart while the ESP is off or not armed is lost.
+- Restarting the pump resets the degree-minutes and stops the compressor. Plan firmware updates for a moment when no heating or hot water cycle is running.
+- ESPHome allows one API client at a time, so stop any log script before flashing.
+- If the session with the pump is lost for 90 s, a watchdog reboots the ESP. The pump then has to be restarted again to re-establish the session. See [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Home Assistant
 
-The repository will include a dashboard with expandable groups in the order of the pump's menus, an animated flow card (heat pump, tank level, heating and hot water states), a card with power, compressor frequency and electricity price, and a card for defrost tracking. The expandable dashboard uses the HACS cards `expander-card` and `mushroom`.
+The values in Home Assistant are checked against the pump's own display. The dashboard has expandable groups in the order of the pump's menus, an animated flow card, a card with power, compressor frequency and electricity price, and a card for defrost tracking. It uses the HACS cards `expander-card`, `mushroom` and `apexcharts-card`.
+
+![Home Assistant dashboard, menus](docs/images/dashboard-menus.png)
+
+The flow card shows the heat pump, tank level, heating and hot water states, and an animated defrost view: the outdoor unit frosts over, icicles form and water drips while the pump sends warm refrigerant to the outdoor unit.
+
+![Home Assistant dashboard, flow card](docs/images/dashboard-flow-card.png)
+
+[Watch the flow card video](docs/images/flow-card.mov)
+
+There is also an **ESP32 Systemstatus** view (memory, chip, network, bus and gateway state) built from the ESPHome debug component and a few extra template sensors.
 
 Tip: if you rename entities, rename them in Home Assistant, not in the firmware. A new name in the firmware creates a new entity and leaves the old one orphaned.
 
-The values in Home Assistant are checked against the pump's own display. The pump's main screen shows the gateway (DCM) symbol once the ESP has answered the handshake and the pump has accepted the gateway:
+The dashboard YAML, the flow card and the status view will be added under `homeassistant/`.
 
-![Thermia display with the DCM symbol](thermia-display.png)
+## Documentation
 
-The same values in the Home Assistant dashboard:
+| Document | Contents |
+|---|---|
+| [docs/protocol-dcm.md](docs/protocol-dcm.md) | The DCM gateway protocol: challenge and handshake, export, runtime ring, mailbox, watchdog |
+| [docs/registers.md](docs/registers.md) | Pages and words: what each register holds and how it was verified |
+| [docs/sensors.md](docs/sensors.md) | Sensor list with status (verified / candidate / unknown) |
+| [docs/defrost.md](docs/defrost.md) | The first captured defrost, with timestamps and words |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Resync, gate failures, lost sessions, what to do |
+| [CHANGELOG.md](CHANGELOG.md) | Firmware history |
 
-![Home Assistant dashboard, overview](dashboard_11.png)
+## Roadmap
 
-![Home Assistant dashboard, menus](dashboard_2.png)
-
-![Home Assistant dashboard, flow card](dashboard_3.png)
-
-
-
-Short video of the animated flow card (heat pump, tank level, heating and hot water states):
-
-[Watch the flow card video](https://github.com/Korsberg/thermia-itec-dcm-esphome/blob/main/IMG_5585.mov)
+- Publish the ESPHome YAML (without secrets) and the Home Assistant dashboard under `esphome/` and `homeassistant/`.
+- Shorter sensor names with a substitution for device name and friendly name, so several pump models can be supported.
+- Decode the remaining unknown words and flags (see [docs/sensors.md](docs/sensors.md)).
+- Research towards writing to the pump (nothing is sent today). Nobody has published a confirmed write yet: a direct master write was reported as acknowledged but ignored, and gateway acknowledgements are transport-level only. If it becomes possible: a single harmless, reversible parameter first, with the owner present, read-back from the next configuration page, and an immediate revert on any deviation. No guessed frames.
 
 ## Safety
 
@@ -202,7 +126,6 @@ This is a free hobby project, shared as it is. If it saved you time or helped yo
 
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.me/peterssm)
 
-
 ## Credits
 
 - [ryckema/Thermia_itec](https://github.com/ryckema/Thermia_itec) for the iTec protocol work this builds on, and for the forum discussion that cross-checked several registers (`0864` word 1 status bits, `0553` operating mode, `0848` heat demand, the immersion heater bits).
@@ -213,7 +136,3 @@ This is a free hobby project, shared as it is. If it saved you time or helped yo
 ## License
 
 To be decided before the code is published.
-
-### Wiring change result
-
-After changing from single wires to doubled conductors (A, B and ground), I measured the resync ratio over about 25 minutes (10 416 frames): about 9-10 %, the same as before (about 10 % over a night, 25 453 of 255 052 frames). There were 0 dropped frames and 0 CRC errors in both cases, so the wiring change made no measurable difference to resync at 9600 baud, but it is the more correct connection.
