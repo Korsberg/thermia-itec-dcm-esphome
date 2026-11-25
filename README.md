@@ -107,7 +107,7 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 
 All of this is read from the pump, never written. Where a test was done on the display, the value was set back afterwards.
 
-**Alarm history** is in runtime page `0884` (60 words). Each record is 7 words: `[value, 0, 0, hour, day, month, year-2000]`, newest first, so 8 full records fit. Date and hour match the display's alarm menu (hour resolution only). The first word of each record varies between records (44, 2048, 15104, 425, 30 seen) and is shown as "kod" in the sensor text; its meaning is not known. The active alarm page `085F` (5 words) is all zero when there is no alarm. All the alarms so far show the same text on the display (communication error with the gateway), which matches ESP restarts and lost sessions.
+**Alarm history** is in runtime page `0884` (60 words). Each record is 7 words: `[value, 0, 0, hour, day, month, year-2000]`, newest first, so 8 full records fit. Date and hour match the display's alarm menu (hour resolution only). The first word of each record varies between records (44, 2048, 15104, 0, 425, 30 seen, and it changed over time for the same record) and is shown as "kod" in the sensor text; its meaning is not known. The active alarm page `085F` (5 words) is all zero when there is no alarm. All the alarms so far show the same text on the display (communication error with the gateway), which matches ESP restarts and lost sessions.
 
 **Calendar** is in configuration pages `055A` to `06C5` (396 words): four calendars of 98 words (VARMV. BLOCK., EVU, LJUDLÄGE, TEMP. SÄNKNING), each with 8 period slots of 12 words and 2 status words. The display shows only the first slot. Period layout, verified by changing values on the display:
 
@@ -183,6 +183,7 @@ The same values in the Home Assistant dashboard:
 ![Home Assistant dashboard, flow card](dashboard_3.png)
 
 ![Home Assistant dashboard, kalender card](kalender.png)
+
 
 Short video of the animated flow card (heat pump, tank level, heating and hot water states):
 
