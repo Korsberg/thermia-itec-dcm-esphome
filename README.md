@@ -186,7 +186,6 @@ The same values in the Home Assistant dashboard:
 
 ![Home Assistant dashboard, flow card](dashboard_3.png)
 
-![Home Assistant dashboard, kalender card](kalender.png)
 
 
 Short video of the animated flow card (heat pump, tank level, heating and hot water states):
