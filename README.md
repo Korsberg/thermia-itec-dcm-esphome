@@ -59,11 +59,15 @@ A passive reader that only listens on the bus never answers the challenge, so th
 | GPIO18 (RX) | RO |
 | GPIO21 | DE and RE (tied together) |
 
-| Cable colour | RS485 module terminal |
+| Cable colour (RJ45 pin) | RS485 module terminal |
 |---|---|
-| brown | A |
-| green | B |
-| blue | ground |
+| brown (8) + white-brown (7), both conductors together | A |
+| green (6) + white-blue (5), both conductors together | B |
+| blue (4) + white-green (3), both conductors together | ground |
+
+Each signal uses both conductors of its group in parallel. The pump ties these pins together internally (about 12 ohm between the two conductors of a group on my 20 m cable), so doubling them lowers the loop resistance.
+
+> **Warning:** Pins 1 and 2 (white-orange and orange) of the pump's RJ45 port measured about 12 V in my installation. Do not connect them to the RS485 module or the ESP32. Insulate the unused wires at the module end so they cannot touch anything.
 
 The module is powered from the 5 V pin of the ESP32-S3 board. Its RO output swings to 5 V, so it is level-shifted to the 3.3 V GPIO with a resistor divider made of the three 4.7 kOhm resistors:
 
@@ -210,3 +214,7 @@ This is a free hobby project, shared as it is. If it saved you time or helped yo
 ## License
 
 To be decided before the code is published.
+
+### Wiring change result
+
+After changing from single wires to doubled conductors (A, B and ground), I measured the resync ratio over about 25 minutes (10 416 frames): about 9-10 %, the same as before (about 10 % over a night, 25 453 of 255 052 frames). There were 0 dropped frames and 0 CRC errors in both cases, so the wiring change made no measurable difference to resync at 9600 baud, but it is the more correct connection.
