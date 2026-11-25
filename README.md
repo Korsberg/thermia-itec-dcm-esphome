@@ -78,7 +78,7 @@ Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is
 - The pump sends its gateway challenge only when the pump itself starts. After flashing or rebooting the ESP, the pump has to be restarted to start a new session. A pump restart while the ESP is off or not armed is lost.
 - Restarting the pump resets the degree-minutes and stops the compressor. Plan firmware updates for a moment when no heating or hot water cycle is running.
 - ESPHome allows one API client at a time, so stop any log script before flashing.
-- If the session with the pump is lost for 90 s, a watchdog reboots the ESP. The pump then has to be restarted again to re-establish the session. See [docs/troubleshooting.md](docs/troubleshooting.md).
+- If the session with the pump stops (for example after 5 failed gate checks in a row), the ESP has to be restarted and then the pump restarted again to re-establish it. Since v40c there is no automatic reboot. See [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Home Assistant
 
@@ -102,6 +102,7 @@ The dashboard YAML, the flow card and the status view will be added under `homea
 
 | Document | Contents |
 |---|---|
+| [docs/firmware.md](docs/firmware.md) | The firmware's building blocks: bus receiver, session and handshake, export, decoding, diagnostics |
 | [docs/protocol-dcm.md](docs/protocol-dcm.md) | The DCM gateway protocol: challenge and handshake, export, runtime ring, mailbox, watchdog |
 | [docs/registers.md](docs/registers.md) | Pages and words: what each register holds and how it was verified |
 | [docs/sensors.md](docs/sensors.md) | Sensor list with status (verified / candidate / unknown) |

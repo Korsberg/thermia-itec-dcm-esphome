@@ -1,0 +1,69 @@
+# Firmware building blocks
+
+The firmware (ESPHome, ESP32-S3 + MAX485) is one YAML file with a C++ lambda core. It has four main blocks and one supporting block. Nothing in it writes to the pump: every transmission is a transport-level acknowledgement or the handshake answer.
+
+```mermaid
+flowchart LR
+    BUS["RS485 bus<br/>(pump = master)"] --> RX["1. Bus receiver<br/>and frame parser"]
+    RX --> SES["2. Gateway session<br/>and handshake"]
+    SES --> EXP["3. Export and<br/>acknowledgements"]
+    EXP --> DEC["4. Decoding<br/>to sensors"]
+    DEC --> HA["Home Assistant"]
+    SES -. status .-> DIAG["5. Diagnostics<br/>and health"]
+    RX -. counters .-> DIAG
+    DIAG --> HA
+    SES -->|"challenge answer"| BUS
+    EXP -->|"ACK only"| BUS
+```
+
+## 1. Bus receiver and frame parser
+
+Reads the RS485 line (9600 baud, 8E1) and assembles Modbus RTU frames.
+
+- Checks the CRC of every frame and resynchronises on a frame header when the stream is out of step (about 6-10 % of frames here, normal).
+- Counts dropped and ambiguous frames.
+- Holds the **isolation gate**: a runtime page is acknowledged only if it arrived alone, with nothing else pending in the UART.
+
+Log lines: `RESYNC`, `RX_GATE_FAIL`, `GATE_FAIL_SKIP`, `GATE_EXTRA_BYTES` (v40e). See [troubleshooting.md](troubleshooting.md).
+
+## 2. Gateway session and handshake
+
+Makes the pump accept the ESP as its gateway and keeps the session alive.
+
+- Detects the pump's challenge (function 17) and calculates the answer. The calculation is checked against a known test vector at every boot.
+- Arms itself about 30 s after boot. It answers once per boot, plus a limited re-challenge after a pump restart (candidate in v40c to v40e).
+- Session rules: stop after 5 failed gates in a row, report waiting after 30 s without valid traffic (`SESSION_WAITING`), resume when clean traffic returns.
+
+Log lines: `ARMED`, `CHALLENGE_RESPONSE_SENT`, `SESSION_WAITING`, `RECHALLENGE_ACCEPTED`, `CHALLENGE_NOT_ANSWERED`, `GATE_FAIL_LIMIT`. See [protocol-dcm.md](protocol-dcm.md).
+
+## 3. Export and acknowledgements
+
+Takes in what the pump sends once the session is open and acknowledges it, transport only.
+
+- The configuration export (31 pages, about 75 s after the challenge).
+- The runtime ring (10 pages, a full cycle about every 21 s) which carries all live values.
+- The mailbox poll (`0708`, every few seconds) with its stateful reply, the alarm page `085F`, and configuration pages the pump re-sends after a change on the display.
+
+Log lines: `CONFIG_EXPORT_COMPLETE`, `RUNTIME_PAGE_ACK_SENT`, `MAILBOX_0708_STATEFUL_REPLY`. See [registers.md](registers.md).
+
+## 4. Decoding to sensors
+
+Stores the words of each page and turns them into Home Assistant entities.
+
+- Numeric sensors with scaling (for example tenths of a degree), temperatures, pressures, frequencies, counters and settings.
+- Binary flags from bits (for example defrost in `0864` word 1 bit 4 and `082F` bit 2) and text sensors (alarms, calendars, versions).
+- Derived values, such as SATT TEMP, and sign changes so the value matches the display (degree-minutes).
+
+Status of every sensor (verified, candidate, never seen, unknown): [sensors.md](sensors.md). Defrost example: [defrost.md](defrost.md).
+
+## 5. Diagnostics and health (supporting)
+
+Not read from the pump.
+
+- ESP32 status: heap, largest free block, minimum free, PSRAM, loop time, uptime, reset reason, chip temperature, Wi-Fi.
+- Gateway health: bus OK, armed, time since last frame, frames seen, resync share, counters of pages and ACKs.
+- The event log used for fault finding. A read-only capability report for other pump models is planned.
+
+## Versions
+
+What changed in each firmware version: [../CHANGELOG.md](../CHANGELOG.md).

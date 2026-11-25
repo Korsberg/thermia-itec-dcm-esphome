@@ -2,6 +2,10 @@
 
 Firmware history (the YAML will be published under `esphome/`).
 
+## v40e (25 November 2026)
+
+- v40d plus one diagnostic: at a failed isolation gate the stray UART bytes are logged in hex (`GATE_EXTRA_BYTES`, at most 24 bytes, read out so they can be shown) together with the last 6 bytes of the frame. No TX change; the ACK is still skipped. Added after the gate stopped the session on page `0820` a second time (uart=5), now at 20:15.
+
 ## v40d (25 November 2026)
 
 - v40c plus one diagnostic log line: `CHALLENGE_NOT_ANSWERED`, which states why a clean challenge on an established session was not answered (waiting, idle time, rechallenge count, peer, drops, ambiguous, resync delta, frames, pending, UART). No protocol or TX change.
