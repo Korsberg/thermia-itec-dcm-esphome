@@ -6,6 +6,8 @@ A read-only emulation of the Thermia online gateway (DCM) for the **Thermia iTec
 
 > **Status: work in progress.** The ESP answers the pump's gateway handshake automatically after every pump start and then reads the pump continuously. Most sensors are verified against the pump display, and most settings were verified by changing the value on the display one step and watching which register moved. The rest are marked as candidates, see [docs/sensors.md](docs/sensors.md). The handshake code is not published yet.
 
+New here? Start with [How it works, in plain words](docs/how-it-works.md).
+
 ![Home Assistant dashboard, overview](docs/images/dashboard-overview.png)
 
 ## What it does
@@ -102,6 +104,7 @@ The dashboard YAML, the flow card and the status view will be added under `homea
 
 | Document | Contents |
 |---|---|
+| [docs/how-it-works.md](docs/how-it-works.md) | How it works, in plain words: start here if you are new |
 | [docs/firmware.md](docs/firmware.md) | The firmware's building blocks: bus receiver, session and handshake, export, decoding, diagnostics |
 | [docs/protocol-dcm.md](docs/protocol-dcm.md) | The DCM gateway protocol: challenge and handshake, export, runtime ring, mailbox, watchdog |
 | [docs/registers.md](docs/registers.md) | Pages and words: what each register holds and how it was verified |
