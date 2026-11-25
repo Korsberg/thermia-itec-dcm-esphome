@@ -55,7 +55,8 @@ Only dynamic data (the ten runtime pages, plus occasional single reads such as `
 | Isolation gate | Before ACKing a runtime page the ESP checks that the page arrived alone: no stray bytes pending in the UART, no dropped or ambiguous frames. A failed gate skips that one ACK (the pump re-sends the page) and the session is kept. |
 | Gate failure limit | After 5 failed gates in a row the session is stopped (`GATE_FAIL_LIMIT`). |
 | Activity timeout | If no valid function 16 frame or `0708` poll arrives for 30 s after the export is complete, the session is stopped. |
-| Watchdog | If the session is lost for 90 s the ESP reboots (`SESSION_LOST`). A new session needs a pump restart. |
+| Waiting (v40c) | After 30 s without activity the session is kept and reported (`SESSION_WAITING`, after 90 s `SESSION_WAITING_LONG`). The session resumes when clean traffic returns. The earlier reboot watchdog (`SESSION_LOST`, 90 s) was removed. |
+| New challenge (v40c, candidate) | A new clean challenge is answered after 30 s of idle waiting, at most three times per boot (`RECHALLENGE_ACCEPTED`). Not yet tested by restarting the pump with the ESP running. |
 | Caps | The old caps on runtime ACKs (20 000) and mailbox replies (30 000) were removed in v40b. Both counters are now 32-bit diagnostic counters. |
 
 A real communication failure is therefore the only thing that ends a session.

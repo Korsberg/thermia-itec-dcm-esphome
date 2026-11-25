@@ -71,6 +71,8 @@ The ten runtime pages are sent in a ring, a full cycle about every 21 s. See [pr
 
 ### `0864`: status bits
 
+Word 0: **3** (bits 0 and 1) during the first captured defrost, 0 otherwise. It was the earliest signal of the defrost, 15 to 22 s before word 1 bit 4. Meaning of the individual bits not known. Candidate, see [defrost.md](defrost.md).
+
 Word 1 (status bits):
 
 | Bit | Meaning | Status |
@@ -90,16 +92,17 @@ Word 2:
 | Bit | Meaning | Status |
 |---|---|---|
 | 0 | Compressor start phase (64 s and 127 s in two observed runs) | verified (live) |
+| 3 | Seen once, in the sample at the start of the first defrost (word 2 = 8) | candidate |
 
-Word 3: 16 bits, all unknown. Some of them may be the flow switch ("F" on the display), not proven.
+Word 3: 16 bits, all unknown. In every sample so far the value is `0x00F0` (bits 4 to 7 set, constant). Some of the bits may be the flow switch ("F" on the display), not proven.
 
 ### `0870`: operating hours and defrost counters
 
 | Word | Meaning | Status |
 |---|---|---|
 | 11 | Defrost count (857, then 858 after the first captured defrost) | verified |
-| 12 | Minutes between the last two defrosts (438 min = 7 h 18 min before the first captured defrost) | candidate |
-| 13 | Minutes since the last defrost (counts compressor running minutes) | candidate |
+| 12 | Minutes between the last two defrosts. At a defrost the last value of word 13 is copied here (438 before the first captured defrost, **2377** after it, as 2377 was the last value of word 13) | verified (copy behaviour), candidate (meaning) |
+| 13 | Minutes since the last defrost. Reset to 0 at a defrost, then about 1 per minute. It counts only while the compressor runs (it stood still at 143 after a pump restart) | verified (behaviour) |
 | others | Operating hours, outdoor unit (7074 / 6575 / 486 read on 24 November) and others | candidate |
 
 The display's AVFROSTNING menu shows the same counters (`857`, `7.3 h`, `38.3 h`, `7H18M`, `38H15M` in the morning of 25 November before the first defrost).
@@ -110,6 +113,8 @@ The display's AVFROSTNING menu shows the same counters (`857`, `7.3 h`, `38.3 h`
 |---|---|---|
 | COMM.KIT and MAIN MICOM versions (words 4-7) | firmware versions | verified |
 | Word 16 bit 2 / bit 1 | compressor start / running | verified (live) |
+| Word 16 during the first defrost | 6 -> 10 (bit 2 off, bit 3 on) -> 2 -> 6 | candidate |
+| Word 0 flag | 1 for a short time after the defrost (12:02:01 to 12:02:43), 0 otherwise in the samples | candidate |
 
 ### `07F8`, `0884`
 

@@ -18,9 +18,13 @@ Before ACKing a runtime page the firmware checks that the page arrived alone. If
 
 This happened once in a long run: on 25 November at 10:04 the pump sent page `0820` five times in eight seconds, each time with 5 bytes pending in the UART (`uart=5`, `pending=0`, `drops=0`). The watchdog rebooted the ESP at 10:06:03 and the session was back after a pump restart, with all 31 pages exported at 10:14. The content of the 5 bytes is not known.
 
+## `SESSION_WAITING` and `SESSION_WAITING_LONG` (v40c and later)
+
+No valid traffic for 30 s (90 s for the long form). The ESP keeps the session and resumes when clean traffic returns (`SESSION_RESUMED`). If the pump was restarted while the ESP was running, the new challenge is answered after 30 s of waiting (`RECHALLENGE_ACCEPTED`), at most three times per boot; if it is not answered, `CHALLENGE_NOT_ANSWERED` says why. This was added in v40c and v40d and is still being tested.
+
 ## `SESSION_LOST 90s / REBOOT TO REARM`
 
-The session has been silent for 90 s and the watchdog reboots the ESP. The pump will not talk to the ESP again until the pump itself is restarted. Typical causes are a power loss on the ESP or the bus, or a run of failed gate checks. Wi-Fi is not needed for the session itself, only for Home Assistant.
+In firmware before v40c the session was silent for 90 s and the watchdog rebooted the ESP. The pump will not talk to the ESP again until the pump itself is restarted. Typical causes are a power loss on the ESP or the bus, or a run of failed gate checks. Wi-Fi is not needed for the session itself, only for Home Assistant.
 
 ## `SESSION_ACTIVITY_TIMEOUT`
 

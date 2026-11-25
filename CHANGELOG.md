@@ -2,6 +2,15 @@
 
 Firmware history (the YAML will be published under `esphome/`).
 
+## v40d (25 November 2026)
+
+- v40c plus one diagnostic log line: `CHALLENGE_NOT_ANSWERED`, which states why a clean challenge on an established session was not answered (waiting, idle time, rechallenge count, peer, drops, ambiguous, resync delta, frames, pending, UART). No protocol or TX change.
+
+## v40c (25 November 2026)
+
+- A 1 s timer detects 30 s of inactivity, including an incomplete configuration export. The session is retained (`SESSION_WAITING` after 30 s, `SESSION_WAITING_LONG` after 90 s, `SESSION_RESUMED` when traffic returns). The session-loss reboot watchdog was removed.
+- Candidate: a new clean challenge is accepted after the retained session has been idle for 30 s, at most three times per boot (`RECHALLENGE_ACCEPTED`). The resync guard is re-based when the wait starts. Tested as software only; restarting the pump with the ESP running still has to be tested on the pump.
+
 ## v40b (25 November 2026)
 
 - Removed the hard-coded stop caps: 20 000 runtime ACKs and 30 000 mailbox replies no longer end the session. Both counters are 32-bit diagnostic counters. A real communication failure is now the only thing that ends a session.
