@@ -118,7 +118,7 @@ The display's AVFROSTNING menu shows the same counters (`857`, `7.3 h`, `38.3 h`
 
 ### `07F8`, `0884`
 
-`0884` holds the alarm history (see below). `07F8` was seen all zero in normal operation.
+`0884` holds the alarm history (see [alarms.md](alarms.md)). `07F8` was seen all zero in normal operation.
 
 ## Settings (configuration pages)
 
@@ -146,7 +146,7 @@ Unknown settings words: `03F1` = 40, `03F2` = 30, `03F5` = 2 on the `03E8` page;
 
 ## Alarms, calendar and concrete drying (read-only)
 
-**Alarm history** is in runtime page `0884` (60 words). Each record is 7 words: `[value, 0, 0, hour, day, month, year-2000]`, newest first, so 8 full records fit. Date and hour match the display's alarm menu (hour resolution only). The first word of each record varies between records (44, 2048, 15104, 0, 425, 30 seen, and it changed over time for the same record); its meaning is not known. The active alarm page `085F` (5 words) is all zero when there is no alarm. All alarms so far show the same text on the display (communication error with the gateway), which matches ESP restarts and lost sessions.
+**Alarm history** is in runtime page `0884` (60 words): 8 records of 7 words, `[word0, 0, minute, hour, day, month, year-2000]`, newest first, and the last four words are the start of a ninth record (its hour only). Display entry *n* in the `LARM` menu is data record *n*; date and hour match (hour resolution only). Entries 9 and 10 on the display are not fully in the 60 words. Word 0 of a record is not the event type and its meaning is unknown. The active alarm page `085F` (5 words) is all zero when there is no alarm. Details, the comparison with the display and the open questions are in [alarms.md](alarms.md).
 
 **Calendar** is in configuration pages `055A` to `06C5` (396 words): four calendars of 98 words (VARMV. BLOCK., EVU, LJUDLÄGE, TEMP. SÄNKNING), each with 8 period slots of 12 words and 2 status words. The display shows only the first slot. Period layout, verified by changing values on the display:
 

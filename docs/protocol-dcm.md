@@ -42,7 +42,7 @@ After the handshake the pump sends three kinds of traffic. All acknowledgements 
 
 Each is ACKed. These pages carry **all** live values. The mailbox and the configuration pages carry no live values.
 
-**3. Mailbox poll.** Every few seconds the pump polls address `0708` (a read of 6 words). The ESP answers with a stateful reply that also requests the alarm page `085F` and the watched pages.
+**3. Mailbox poll.** Every few seconds the pump polls address `0708` (a read of 6 words). The ESP answers with a stateful reply that also requests the alarm page `085F` and the watched pages. From v41 the alarm page is requested alone (bit `0x0080` in word 4 of the reply) every 300 s; the pump's `085F` page then followed within 5 to 15 s in every case so far, but it also sends the page by itself, so the request is not proven to be the cause. See [alarms.md](alarms.md).
 
 **Re-sent configuration pages.** When a setting is changed on the display, the pump re-sends the affected configuration page (for example `03E8`, 14 words) and expects an ACK. The ESP ACKs it, stores the new words and logs the raw page, so the sensors follow the display within seconds. Pages of this kind are recognised by address and length.
 

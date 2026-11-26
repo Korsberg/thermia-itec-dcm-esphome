@@ -20,8 +20,8 @@ Observation window for "seen": 23 to 25 November 2026 (about two and a half days
 | Hot water on (VARMVATTEN) | `042E` | follows the display |
 | TILLSATS FRYSSKYDD | `0461` | follows the display |
 | Calendar F1 to F4 active | `05BB`, `061D`, `067F`, `06E1` | F3 (quiet mode) seen on |
-| Active alarm | `085F` | all zero without an alarm |
-| Alarm history 1 to 8 | `0884` | text sensors |
+| Active alarm | `085F` | all zero without an alarm; see [alarms.md](alarms.md) |
+| Alarm history 1 to 8 | `0884` | time per record; the type of the event is not known (see [alarms.md](alarms.md)) |
 | Bus OK, Gateway armed | firmware | derived from last frame age and session state |
 
 ### Candidates
@@ -64,7 +64,7 @@ Operating hours of the outdoor unit, heating, hot water and additional heat; min
 
 ### Unknown
 
-Settings words `03F1`, `03F2`, `03F5`, `0458`, `045B`; the first word of each alarm record.
+Settings words `03F1`, `03F2`, `03F5`, `0458`, `045B`; the first word of each alarm record (not the event type, see [alarms.md](alarms.md)).
 
 ## Gateway and ESP32 health sensors
 

@@ -44,7 +44,7 @@ Takes in what the pump sends once the session is open and acknowledges it, trans
 - The runtime ring (10 pages, a full cycle about every 21 s) which carries all live values.
 - The mailbox poll (`0708`, every few seconds) with its stateful reply, the alarm page `085F`, and configuration pages the pump re-sends after a change on the display.
 
-Log lines: `CONFIG_EXPORT_COMPLETE`, `RUNTIME_PAGE_ACK_SENT`, `MAILBOX_0708_STATEFUL_REPLY`. See [registers.md](registers.md).
+Log lines: `CONFIG_EXPORT_COMPLETE`, `RUNTIME_PAGE_ACK_SENT`, `MAILBOX_0708_STATEFUL_REPLY`. From v41 the alarm page has its own scheduler and log lines (`ALARM_085F_REQUEST_START`, `ALARM_085F_REQUEST_TIMEOUT`, `ALARM_085F_WORDS`); see [alarms.md](alarms.md). See [registers.md](registers.md).
 
 ## 4. Decoding to sensors
 
