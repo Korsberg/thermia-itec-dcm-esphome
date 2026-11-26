@@ -96,7 +96,7 @@ All five photographed times (entries 2, 3, 4, 6 and 8) match. Entry 10 cannot be
   2. The type of an event is in the missing words or on another page.
   3. The remainder is sent only if requested.
   Nothing passive can tell these apart. No new bus request has been made for this, and none is planned until a new alarm can be compared with the display.
-- The history sensors therefore show time without a type. No history code is shown as text.
+- The history sensors show the time and the raw first word as `(kod N)`, for example `kod 44`. They do not name an event type, because that word is not the type.
 
 ## Next time an alarm appears
 
