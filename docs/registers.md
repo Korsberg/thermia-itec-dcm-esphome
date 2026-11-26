@@ -146,7 +146,7 @@ Unknown settings words: `03F1` = 40, `03F2` = 30, `03F5` = 2 on the `03E8` page;
 
 ## Alarms, calendar and concrete drying (read-only)
 
-**Alarm history** is in runtime page `0884` (60 words): 8 records of 7 words, `[word0, 0, minute, hour, day, month, year-2000]`, newest first, and the last four words are the start of a ninth record (its hour only). Display entry *n* in the `LARM` menu is data record *n*; date and hour match (hour resolution only). Entries 9 and 10 on the display are not fully in the 60 words. Word 0 of a record is not the event type and its meaning is unknown. The active alarm page `085F` (5 words) is all zero when there is no alarm. Details, the comparison with the display and the open questions are in [alarms.md](alarms.md).
+**Alarm history** is in runtime page `0884` (60 words): 8 records of 7 words, `[word0, 0, minute, hour, day, month, year-2000]`, newest first, and the last four words are the start of a ninth record (its hour only). Display entry *n* in the `LARM` menu is data record *n*; date and hour match (a new record also holds the minute, which is lost from older records). Entries 9 and 10 on the display are not fully in the 60 words. Word 0 of a record is not the event type and its meaning is unknown. The active alarm page `085F` (5 words) is all zero when there is no alarm. Details, the comparison with the display and the open questions are in [alarms.md](alarms.md).
 
 **Calendar** is in configuration pages `055A` to `06C5` (396 words): four calendars of 98 words (VARMV. BLOCK., EVU, LJUDLÄGE, TEMP. SÄNKNING), each with 8 period slots of 12 words and 2 status words. The display shows only the first slot. Period layout, verified by changing values on the display:
 

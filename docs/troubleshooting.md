@@ -10,13 +10,21 @@ When it works, the log shows `CONFIG_EXPORT_COMPLETE pages=31` within about 75 s
 
 ## `RESYNC header byte=00 next=02 pending=28`
 
-The receiver resynchronised on a frame header. Over long runs this is about 6-10 % of frames and is normal here: there were 0 dropped frames and 0 CRC errors in the long runs. Changing the cable to doubled conductors made no measurable difference.
+The receiver resynchronised on a frame header. Over long runs this is about 6-10 % of frames and is normal here: there were 0 dropped frames and 0 CRC errors in the long runs. Changing the cable to doubled conductors made no measurable difference. Removing the 120 ohm terminator from the RS485 module made no difference either: the first 24 resync samples after arming are byte for byte the same before and after (a 28-byte frame that repeats about once a second, and a stray `00` byte in front of the first configuration page). It is traffic on the bus that is not addressed to the gateway, stepped over by the parser, and not noise on the line. The resync share is therefore not a measure of signal quality.
 
 ## `RX_GATE_FAIL` and `GATE_FAIL_SKIP`
 
 Before ACKing a runtime page the firmware checks that the page arrived alone. If something else is pending in the UART, that one ACK is skipped (`GATE_FAIL_SKIP streak=N`), the session is kept and the pump re-sends the page. After 5 failures in a row the session stops (`GATE_FAIL_LIMIT`).
 
 This happened once in a long run: on 25 November at 10:04 the pump sent page `0820` five times in eight seconds, each time with 5 bytes pending in the UART (`uart=5`, `pending=0`, `drops=0`). The watchdog rebooted the ESP at 10:06:03 and the session was back after a pump restart, with all 31 pages exported at 10:14. It happened again on 25 November at 20:15 (five failures on page `0820`, `uart=5`, session stopped; single failures at 19:45 and 20:13 recovered on the pump's retry). Since v40c the ESP is not rebooted automatically, so it stayed stopped until the power was cycled and the pump restarted. The content of the 5 bytes is not known; v40e logs them (`GATE_EXTRA_BYTES`).
+
+## Reconnecting the bus while the ESP is running (`MAILBOX_0708_GATE_FAIL`)
+
+Disconnecting the A and B wires for a minute and connecting them again (for example when swapping the RS485 module) leaves a few stray bytes on the line. On 26 November 15:08, 77 s after the bus went quiet, the first mailbox poll arrived with 4 stale bytes in front of it: `MAILBOX_0708_GATE_FAIL ... STOP RX ONLY`. The ESP stopped answering (`armed=0`), and the pump kept re-sending page `080C` without getting an ACK.
+
+Restarting only the ESP did not help: it armed itself, the pump sent nothing but mailbox polls, and no challenge came, twice over about 20 minutes. The session came up when the pump was restarted by hand, with the ESP running and armed (`CONFIG_EXPORT_COMPLETE` 15:31:47, about 80 s after the pump restart).
+
+Safer order when changing the module: stop the ESP first, change the module, start the ESP, wait for `ARMED`, then restart the pump (see the first section).
 
 ## `SESSION_WAITING` and `SESSION_WAITING_LONG` (v40c and later)
 
