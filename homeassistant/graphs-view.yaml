@@ -1,0 +1,97 @@
+# Graph view for Home Assistant (sections view): degree-minutes with the pump's own
+# START / STOP / additional heat limits, compressor frequency with defrost, and defrost counters.
+# Needs the custom card apexcharts-card (HACS). Replace the entity prefix
+# "pannrummet_thermia_itec_xt10_s3_" with your own, see README.md in this folder.
+title: Grafer
+path: grafer
+icon: mdi:chart-line
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    cards:
+      - type: custom:apexcharts-card
+        header:
+          show: true
+          title: Gradminuter
+          show_states: true
+          colorize_states: true
+        graph_span: 24h
+        yaxis:
+          - min: -100
+            max: 60
+            tickAmount: 8
+            decimals: 0
+        apex_config:
+          chart:
+            height: 300
+          stroke:
+            width: [2, 1, 1, 1]
+            dashArray: [0, 4, 4, 4]
+        series:
+          - entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_varmebehov_gradminuter_0848_ord0_tecken_vant
+            name: Gradminuter
+            extend_to: now
+          - entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_meny_varme_start_0431
+            name: Värme START
+            show:
+              in_header: false
+              legend_value: false
+          - entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_meny_varme_stopp_0432
+            name: Värme STOPP
+            show:
+              in_header: false
+              legend_value: false
+          - entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_meny_tillsats_start_0457
+            name: Tillsats START
+            show:
+              in_header: false
+              legend_value: false
+      - type: custom:apexcharts-card
+        header:
+          show: true
+          title: Kompressor och avfrostning
+        graph_span: 24h
+        apex_config:
+          chart:
+            height: 260
+          stroke:
+            width: [2, 1]
+          fill:
+            opacity: [1, 0.35]
+        yaxis:
+          - id: hz
+            min: 0
+            decimals: 0
+          - id: dfr
+            opposite: true
+            min: 0
+            max: 1
+            show: false
+        series:
+          - entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_compressor_frequency_oem
+            name: Kompressor (Hz)
+            yaxis_id: hz
+            extend_to: now
+          - entity: binary_sensor.pannrummet_thermia_itec_xt10_s3_thermia_avfrostning_byggnad_0864_b4
+            name: Avfrostning
+            yaxis_id: dfr
+            type: area
+            curve: stepline
+            transform: "return x === 'on' ? 1 : 0;"
+            show:
+              in_header: false
+              legend_value: false
+      - type: entities
+        title: Avfrostning
+        entities:
+          - entity: binary_sensor.pannrummet_thermia_itec_xt10_s3_thermia_avfrostning_byggnad_0864_b4
+            name: Pågår (0864 bit 4)
+          - entity: binary_sensor.pannrummet_thermia_itec_xt10_s3_thermia_avfrostning_082f_bit2_kandidat
+            name: Pågår (utedel, 082F bit 2)
+          - entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_avfrostningar_kandidat_0870
+            name: Antal avfrostningar
+          - entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_sedan_avfrostning_h_m_0870_ord13
+            name: Sedan senaste (kompressortid)
+          - entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_mellan_avfrostning_h_m_0870_ord12
+            name: Mellan de två senaste
