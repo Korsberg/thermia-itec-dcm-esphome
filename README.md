@@ -110,6 +110,7 @@ The dashboard YAML, the flow card and the status view will be added under `homea
 | [docs/registers.md](docs/registers.md) | Pages and words: what each register holds and how it was verified |
 | [docs/sensors.md](docs/sensors.md) | Sensor list with status (verified / candidate / unknown) |
 | [docs/defrost.md](docs/defrost.md) | The first captured defrost, with timestamps and words |
+| [docs/alarms.md](docs/alarms.md) | Active alarm (`085F`), the alarm history (`0884`) compared with the display, and what is still unknown |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Resync, gate failures, lost sessions, what to do |
 | [CHANGELOG.md](CHANGELOG.md) | Firmware history |
 

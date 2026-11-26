@@ -41,3 +41,7 @@ Stop any log script before flashing, or the upload may be refused.
 ## Home Assistant dashboard shows `Loading...` or `N/A`
 
 After the dashboard has been changed or Home Assistant restarted, graphs may show `Loading...`. A hard reload of the browser page fixes it.
+
+## Alarm status in Home Assistant (v41d and later)
+
+The summary sensor starts with `LARM|`, `INGET|` or `OKÄNT|`, followed by a status. `OKÄNT|Buss tyst` means no valid frame for 60 s: check the bus and the ESP. `OKÄNT|Session stoppad` or `Session väntar` means the bus is alive but the gateway session is not running (see the sections above). `Ingen läsning` or `Svar uteblir` means no alarm page has been read yet or the last request timed out; the next request follows after 300 s (900 s after three timeouts). `Gammal` means the last page is older than 11 minutes. Only `INGET|Aktuell` means that the alarm page was read recently while the session is up. The meaning of the bits is in [alarms.md](alarms.md).
