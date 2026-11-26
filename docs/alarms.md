@@ -30,7 +30,7 @@ Observed after the v41d flash on 26 November 2026, 11:03 (the pump was restarted
 |---|---|---|---|
 | 2143 bit 2 | additional heat fault (ELTILLSATSFEL on the display) | candidate | yes |
 | 2145 bit 8 | communication error, HUB-KORT | verified against the display (26 Nov 2026, 13:14:54: `085F` word 2145 = `0100` for about 47 s, display `KOMM.FEL HUB-KORT` 13:15) | no (shown only) |
-| 2145 bit 11 | communication error, internet gateway (ONLINE/LINK) | observed (`0800` for the first minute after an ESP restart on 25 Nov 21:39); not yet seen next to a display photo | no (shown only) |
+| 2145 bit 11 | communication error, internet gateway (ONLINE/LINK) | verified against the display as a history record (26 Nov 2026, `LARM 1` = ONLINE/LINK 21:00 after a gateway flash); `0800` was seen in `085F` for the first minute after an ESP restart on 25 Nov 21:39 | no (shown only) |
 | 2143 bit 9 and 2144 bit 4 | treated as OEM condition inputs, not alarms | assumption | no (shown as "OEM-ingång … (ej larm)") |
 | all other bits | unknown | unknown | yes |
 
@@ -96,7 +96,8 @@ All five photographed times (entries 2, 3, 4, 6 and 8) match. Entry 10 cannot be
   2. The type of an event is in the missing words or on another page.
   3. The remainder is sent only if requested.
   Nothing passive can tell these apart. No new bus request has been made for this, and none is planned until a new alarm can be compared with the display.
-- The history sensors show the date, the hour (always with `:00`, even when the data holds the minute) and the raw first word as `(kod N)`, for example `kod 44`. They do not name an event type, because that word is not the type.
+- The history sensors show the date, the time and the raw first word as `(kod N)`, for example `kod 44`. Up to V41d the time was the hour with a fixed `:00`, even when the data holds the minute; V41e shows the stored minute. They do not name an event type, because that word is not the type.
+- **`KOMM.FEL ONLINE/LINK` records are stamped on the full hour (`hh:00`).** Photographed on 26 Nov 2026: display `LARM 1` = `KOMM.FEL ONLINE/LINK 21:00`, data `002C 0000 0000 0015 001A 000B 001A` (word 0 `0x2C`, minute 0, hour 21). It appeared in `0884` after the gateway was flashed at 21:34 and the pump restarted at about 21:41, with the alarm page `085F` all zero before it. The same happened with the ESP restart on 25 Nov (ONLINE/LINK 21:00) and the module swap on 26 Nov (15:00). So ONLINE/LINK is what the pump logs when the gateway disappears (restart, flash, bus reconnect), and its time has no minute. HUB-KORT records, in contrast, carry the real minute (13:12, 13:15).
 
 ## Observed alarm episodes
 
@@ -104,6 +105,8 @@ Alarm episodes seen so far, all `KOMM.FEL HUB-KORT` or `KOMM.FEL ONLINE/LINK`. T
 
 - 25 Nov 2026: 15:56, 16:39, 16:42, 16:50, 16:53, 20:10, 21:16, 21:18 (plus ONLINE/LINK at the ESP restart 21:39).
 - 26 Nov 2026: 13:12 and 13:15.
+- Records caused by us, not by the bus: ONLINE/LINK 15:00 on 26 Nov (RS485 module swap) and ONLINE/LINK 21:00 on 26 Nov (gateway flash and pump restart).
+- After the 120 ohm terminator was taken off the RS485 module (26 Nov 15:32), there was no spontaneous episode for 6 hours until the flash at 21:34 (all `085F` pages were zero). Too short to be a result on its own.
 - None in the first five hours of 25 Nov (08:54 to 13:39), none overnight from 21:39 to 11:01, none 11:02 to 13:11.
 
 What the log shows around an episode (26 Nov 13:14 to 13:15):
