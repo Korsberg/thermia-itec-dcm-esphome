@@ -111,6 +111,7 @@ The dashboard YAML, the flow card and the status view will be added under `homea
 | [docs/sensors.md](docs/sensors.md) | Sensor list with status (verified / candidate / unknown) |
 | [docs/defrost.md](docs/defrost.md) | The first captured defrost, with timestamps and words |
 | [docs/alarms.md](docs/alarms.md) | Active alarm (`085F`), the alarm history (`0884`) compared with the display, and what is still unknown |
+| [docs/FLOW_DIAGRAMS.md](docs/FLOW_DIAGRAMS.md) | Diagrams of the gateway: startup, session, runtime pages, receive gate, the alarm request and the status sensor |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Resync, gate failures, lost sessions, what to do |
 | [CHANGELOG.md](CHANGELOG.md) | Firmware history |
 
