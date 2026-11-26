@@ -1,6 +1,6 @@
-# Thermia iTec DCM gateway – firmware flows in V40e
+# Thermia iTec DCM gateway – firmware flows (v41d)
 
-This guide explains how the V40e ESPHome gateway receives information from a Thermia heat pump and exposes it in Home Assistant. The diagrams are simplified descriptions of this firmware, not an official Thermia protocol specification.
+This guide explains how the ESPHome gateway (firmware v41d, a candidate that is not yet published; v40e is the rollback version) receives information from a Thermia heat pump and exposes it in Home Assistant. The diagrams are simplified descriptions of this firmware, not an official Thermia protocol specification.
 
 ## From heat pump to Home Assistant
 
@@ -17,7 +17,7 @@ flowchart LR
     E -->|"responses and ACKs"| B
 ```
 
-The ESP32 receives pump data and sends protocol responses on the bus. V40e does not write heat pump settings. An ACK is a transport acknowledgement; it does not change a setpoint.
+The ESP32 receives pump data and sends protocol responses on the bus. The firmware does not write heat pump settings. An ACK is a transport acknowledgement; it does not change a setpoint.
 
 ## Startup and configuration
 
@@ -71,7 +71,7 @@ flowchart TD
 
 Examples include `07D0` for hydraulic temperatures, `080C` for room temperature, `0820` for outdoor unit data, `0848` for values including heat demand, `0870` for operating hours and defrost information, and `0884` for alarm history. Some fields remain candidates and need comparison with the pump display.
 
-The `0708` mailbox is used to respond to controller polls. The gateway also requests page `0820` for selected sensor monitoring approximately 60 seconds after the preceding request cycle completes. Other known runtime pages are received and acknowledged when the pump sends them.
+The `0708` mailbox is used to respond to controller polls. The gateway also requests page `0820` for selected sensor monitoring approximately 60 seconds after the preceding request cycle completes. From v41 the alarm page `085F` is requested separately (see below). Other known runtime pages are received and acknowledged when the pump sends them.
 
 Many runtime sensors become unavailable if their page has not been updated for five minutes. Configuration values can remain visible after their initial read; the configuration data age sensor shows how old the cached page is.
 
@@ -93,7 +93,7 @@ flowchart TD
     I --> C
 ```
 
-During inactivity V40e retains the session. If a new challenge passes the checks, several session fields are reset and cached sensor data is marked for a fresh read. Up to three rechallenges are allowed per ESP32 boot. Other protection conditions can stop the session, in which case this recovery path does not automatically rearm it.
+During inactivity the gateway retains the session. If a new challenge passes the checks, several session fields are reset and cached sensor data is marked for a fresh read. Up to three rechallenges are allowed per ESP32 boot. Other protection conditions can stop the session, in which case this recovery path does not automatically rearm it.
 
 The rechallenge path has been exercised in a host test with simulated traffic. Recovery after a real heat pump restart still needs verification on the installation. A challenge arriving before the waiting state is active is not answered by the rechallenge rule.
 
@@ -104,13 +104,13 @@ flowchart TD
     A["Known FC16 page received"] --> B{"Receive isolation<br/>checks pass?"}
     B -->|Yes| C["Reset gate failure streak<br/>page can be acknowledged"]
     B -->|No| D["RX_GATE_FAIL<br/>skip ACK"]
-    D --> E["V40e logs up to 24 extra UART bytes"]
+    D --> E["Log up to 24 extra UART bytes"]
     E --> F{"Five consecutive<br/>gate failures?"}
     F -->|No| G["GATE_FAIL_SKIP<br/>retain session"]
     F -->|Yes| H["GATE_FAIL_LIMIT<br/>stop session"]
 ```
 
-Before an FC16 response, the gateway checks for conditions including additional frames, incomplete parser data and bytes waiting in UART. V40e reads the extra UART bytes that it logs. This can consume bytes that might otherwise form part of a later frame and should be considered when interpreting the log. The mailbox has separate gate handling.
+Before an FC16 response, the gateway checks for conditions including additional frames, incomplete parser data and bytes waiting in UART. The gateway reads the extra UART bytes that it logs. This can consume bytes that might otherwise form part of a later frame and should be considered when interpreting the log. The mailbox has separate gate handling.
 
 | Log or sensor | Meaning |
 | --- | --- |
@@ -123,9 +123,48 @@ Before an FC16 response, the gateway checks for conditions including additional 
 | `DCM RX dropped frames` | The parser's counter for certain buffer overflows; it does not count all possible missed messages. |
 | `Resync Share` | Parser resynchronization steps divided by valid frames. It is not a percentage of missed readings. |
 
-## Alarms and current limits
+## Alarm page `085F` (v41d)
 
-Page `085F` still has a limit of 16 alarm ACKs per ESP32 boot, plus a one-time exception for an identical repeat. After the limit is reached, repeated offers of the page can be left without an ACK. Check the age of the last alarm observation: an old value does not prove the current alarm state.
+```mermaid
+flowchart TD
+    A["Session established<br/>and mailbox 0708 polled"] --> B{"300 s since the start of<br/>the previous alarm request?<br/>(900 s after 3 timeouts in a row)"}
+    B -->|No| A
+    B -->|Yes| C["Mailbox reply with<br/>W4 = 0x0080 (alarm page only)"]
+    C --> D{"085F page within 30 s?"}
+    D -->|Yes| E{"Valid and isolated?"}
+    E -->|Yes| F["Send transport ACK<br/>and cache the 5 words"]
+    E -->|No| G["Skip ACK, log the reason"]
+    D -->|"No: timeout"| H["ALARM_085F_REQUEST_TIMEOUT<br/>no early retry"]
+    H --> A
+    F --> I["Summary sensor:<br/>TOKEN | status | 5 hex words | text"]
+    G --> I
+    I --> A
+```
+
+The pump can also send `085F` on its own. Such a page is classified only by **when** it arrived: `IN_REQUEST_WINDOW`, `AFTER_TIMEOUT_WINDOW` or `UNSOLICITED`. The names describe timing, not cause. So far a page has followed every request within 5 to 15 seconds, but it is not proven that the request causes it.
+
+There is no cap on `085F` acknowledgements (the 16-ACK limit per boot existed up to v40e and was removed in v41c). Only the logging of identical repeated pages is limited, to one line per 60 seconds with a count of suppressed lines.
+
+```mermaid
+flowchart TD
+    A["Summary sensor is rebuilt every 5 s<br/>from one snapshot"] --> B{"Valid frame on the bus<br/>in the last 60 s?"}
+    B -->|No| C["OKÄNT / Buss tyst"]
+    B -->|Yes| D{"Session armed<br/>and established?"}
+    D -->|"Not armed"| E["OKÄNT / Session stoppad"]
+    D -->|"Waiting"| F["OKÄNT / Session väntar"]
+    D -->|Yes| G{"Any 085F page read yet?"}
+    G -->|"No, request pending"| H["OKÄNT / Ingen läsning"]
+    G -->|"No, request timed out or overdue"| I["OKÄNT / Svar uteblir"]
+    G -->|Yes| J{"Page older than 11 min?"}
+    J -->|Yes| K["OKÄNT / Gammal"]
+    J -->|No| L{"A bit that should notify is set?"}
+    L -->|Yes| M["LARM / Aktuell"]
+    L -->|No| N["INGET / Aktuell"]
+```
+
+`INGET|Aktuell` means that `085F` was read recently while the session is up, not that the pump has no problem. Which bits notify and which are only shown is in [alarms.md](alarms.md), together with the alarm history `0884` and what is still unknown. The checks run in the order shown: a quiet bus has priority over everything else.
+
+## Current limits
 
 Alarm history comes from `0884`. Calendar text displays the first period of each calendar. Some fields and time formats remain under verification against the pump menus.
 
