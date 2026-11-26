@@ -1,0 +1,112 @@
+# ESP32 system status view for Home Assistant (sections view).
+# Needs the custom card mushroom (HACS). Replace the entity prefix
+# "pannrummet_thermia_itec_xt10_s3_" with your own, see README.md in this folder.
+type: sections
+title: ESP32 Systemstatus
+path: esp32_status
+max_columns: 3
+sections:
+  - cards:
+      - type: heading
+        heading: Minne
+        icon: mdi:memory
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_heap_free
+        name: Ledigt arbetsminne (heap)
+        icon: mdi:memory
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_heap_largest_free_block
+        name: Största sammanhängande block
+        icon: mdi:chart-box-outline
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_heap_fragmentation
+        name: Heap-fragmentering
+        icon: mdi:chart-donut
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_heap_minimum_free
+        name: Minsta lediga heap sedan start
+        icon: mdi:arrow-collapse-down
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_psram_free
+        name: Ledigt PSRAM
+        icon: mdi:memory
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_loop_stack_minimum_free
+        name: Minsta lediga loop-stack
+        icon: mdi:layers-outline
+  - cards:
+      - type: heading
+        heading: Chip & system
+        icon: mdi:cpu-64-bit
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_uptime
+        name: Systemets upptid
+        icon: mdi:clock-outline
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_reset_reason
+        name: Senaste omstartsorsak
+        icon: mdi:restart
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_chip_temperature
+        name: Chiptemperatur
+        icon: mdi:thermometer
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_cpu_frequency
+        name: CPU-frekvens
+        icon: mdi:speedometer
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esp_loop_time
+        name: Loop-tid
+        icon: mdi:timer-outline
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_esphome_version
+        name: ESPHome-version
+        icon: mdi:tag-outline
+  - cards:
+      - type: heading
+        heading: Nätverk & Wi-Fi
+        icon: mdi:wifi
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_wifi_signal
+        name: Wi-Fi signalstyrka
+        icon: mdi:wifi
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_ip_address
+        name: IP-adress
+        icon: mdi:ip-network
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_wifi_ssid
+        name: Wi-Fi nätverk
+        icon: mdi:wifi-marker
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_wifi_bssid
+        name: Accesspunkt (BSSID)
+        icon: mdi:router-wireless
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_mac_address
+        name: MAC-adress
+        icon: mdi:ethernet
+  - cards:
+      - type: heading
+        heading: Buss & Gateway
+        icon: mdi:shield-check
+      - type: custom:mushroom-entity-card
+        entity: binary_sensor.pannrummet_thermia_itec_xt10_s3_thermia_bus_ok
+        name: Modbus-buss OK
+        icon: mdi:shield-check
+      - type: custom:mushroom-entity-card
+        entity: binary_sensor.pannrummet_thermia_itec_xt10_s3_thermia_gateway_armed
+        name: Gateway armerad
+        icon: mdi:lock-open-check
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_gateway_last_frame_age
+        name: Tid sedan senaste frame
+        icon: mdi:timer-sand
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_gateway_frames_seen
+        name: Frames sedan start
+        icon: mdi:counter
+      - type: custom:mushroom-entity-card
+        entity: sensor.pannrummet_thermia_itec_xt10_s3_thermia_gateway_resync_share
+        name: Resync-andel
+        icon: mdi:percent
