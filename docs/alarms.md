@@ -22,15 +22,15 @@ The pump sends `085F` as a function 16 page, like the other pages. The ESP asks 
 - Every valid, isolated `085F` page is acknowledged (transport only). There is no cap on these acknowledgements. Only the logging of identical repeated pages is limited (one line per 60 s, with a count of suppressed lines).
 - A page that arrives at any time is counted as one of three kinds, named after **timing only**: `IN_REQUEST_WINDOW`, `AFTER_TIMEOUT_WINDOW`, `UNSOLICITED`. The names say when the page came, not what caused it.
 
-Observed after the v41d flash on 26 November 2026, 11:03: the pump started the session by itself, the first seven requests were each followed by a page within 5 to 15 s, and there were no timeouts, no failed acknowledgements and no gate failures. The pump also sent a few pages on its own. **It is therefore not proven that the request causes the page**, only that a page follows it every time so far.
+Observed after the v41d flash on 26 November 2026, 11:03 (the pump was restarted by hand, which is what makes it send its challenge, see [troubleshooting.md](troubleshooting.md)): the first seven requests were each followed by a page within 5 to 15 s, and there were no timeouts, no failed acknowledgements and no gate failures. The pump also sent a few pages on its own. **It is therefore not proven that the request causes the page**, only that a page follows it every time so far.
 
 ## Bits in `085F` (candidates)
 
 | Word, bit | Meaning | Status | Notifies |
 |---|---|---|---|
 | 2143 bit 2 | additional heat fault (ELTILLSATSFEL on the display) | candidate | yes |
-| 2145 bit 8 | communication error, HUB-KORT | candidate | no (shown only) |
-| 2145 bit 11 | communication error, internet gateway (ONLINE/LINK) | candidate | no (shown only) |
+| 2145 bit 8 | communication error, HUB-KORT | verified against the display (26 Nov 2026, 13:14:54: `085F` word 2145 = `0100` for about 47 s, display `KOMM.FEL HUB-KORT` 13:15) | no (shown only) |
+| 2145 bit 11 | communication error, internet gateway (ONLINE/LINK) | observed (`0800` for the first minute after an ESP restart on 25 Nov 21:39); not yet seen next to a display photo | no (shown only) |
 | 2143 bit 9 and 2144 bit 4 | treated as OEM condition inputs, not alarms | assumption | no (shown as "OEM-ingång … (ej larm)") |
 | all other bits | unknown | unknown | yes |
 
@@ -65,7 +65,7 @@ The notification automations and the status sensors are published together with 
 
 Observed on 522 distinct captures:
 
-- 60 words are 8 records of 7 words: `[word0, 0, minute, hour, day, month, year-2000]`, newest first. All 522 captures fit. Minute is always 0 in the data, the display shows the hour only.
+- 60 words are 8 records of 7 words: `[word0, 0, minute, hour, day, month, year-2000]`, newest first. All 522 captures fit. The minute is stored for a new record (13:12 and 13:15 on 26 Nov, 15:56 and 21:16 on 25 Nov) and was seen as `00` in older records. When it is zeroed is not known: some records kept their minute for hours, and all minutes disappeared together at some points (for example at 20:15 on 25 Nov). Home Assistant shows only the hour for every record in v41d (the text is built with a fixed `:00`), so a new alarm at 13:12 shows as 13:00 there.
 - A 10 x 6 layout fits only 522 of 5220 records, so it is not the layout.
 - The last four words (56 to 59) are always `0000 0000 0000 00hh`. When a new alarm pushes the list one step, `hh` becomes the hour of the record that left position 8. This held for every shift that could be followed (13 shifts across the captures). So the tail is the start of a **ninth** record, with the hour only.
 - Display entry *n* matches data record *n* (see the table). This replaces an earlier note that said *n* - 1.
@@ -96,7 +96,24 @@ All five photographed times (entries 2, 3, 4, 6 and 8) match. Entry 10 cannot be
   2. The type of an event is in the missing words or on another page.
   3. The remainder is sent only if requested.
   Nothing passive can tell these apart. No new bus request has been made for this, and none is planned until a new alarm can be compared with the display.
-- The history sensors show the time and the raw first word as `(kod N)`, for example `kod 44`. They do not name an event type, because that word is not the type.
+- The history sensors show the date, the hour (always with `:00`, even when the data holds the minute) and the raw first word as `(kod N)`, for example `kod 44`. They do not name an event type, because that word is not the type.
+
+## Observed alarm episodes
+
+Alarm episodes seen so far, all `KOMM.FEL HUB-KORT` or `KOMM.FEL ONLINE/LINK`. Times are the minute stored in a new history record.
+
+- 25 Nov 2026: 15:56, 16:39, 16:42, 16:50, 16:53, 20:10, 21:16, 21:18 (plus ONLINE/LINK at the ESP restart 21:39).
+- 26 Nov 2026: 13:12 and 13:15.
+- None in the first five hours of 25 Nov (08:54 to 13:39), none overnight from 21:39 to 11:01, none 11:02 to 13:11.
+
+What the log shows around an episode (26 Nov 13:14 to 13:15):
+
+- `080C` word 15 bit 5 (`0020`) is high for 25 to 70 s. It was seen at every episode we could follow (candidate: an "alarm active" flag on a page that arrives about every 21 s).
+- The pump sends an extra `085F` page, in its normal cycle after `0848`. At 13:14:54 word 2145 was `0100`; at 13:15:41 all words were `0000` again. At 13:12 only the all-zero page was caught, so that episode was shorter than one cycle.
+- The new record appears in `0884` about 6 s after the first `085F` page.
+- The gateway side looked normal: mailbox replies within about 25 ms, no timeouts, no gate failures, no gap in the bus longer than 3.7 s. The requests we send do not line up with the episodes.
+
+The cause is unknown. The episodes happened with firmware v37 to v41d, so no single firmware version explains them. Whether they also happen without the ESP connected is not known; the pump's list holds only entries from 25 Nov 16:00 onward.
 
 ## Next time an alarm appears
 

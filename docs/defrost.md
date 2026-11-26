@@ -50,11 +50,23 @@ At a defrost the last value of word 13 (2377 minutes, 39 h 37 min) is copied to 
 - `0864` word 1 bit 4 = **defrost using building heat**: verified.
 - `0820` word 15 (`082F`) bit 2 = defrost flag in the outdoor unit data: verified. It was set 7 s before bit 4 and released 6 s before it, so it is the earlier signal of the two.
 - `0870` word 11 = defrost count: verified. Words 12 and 13: behaviour verified as described above.
-- `0864` word 0 (value 3) is the earliest signal, 15 to 22 s before bit 4. Candidate: it was seen once, and its bits are not decoded.
+- `0864` word 0 (value 3, bits not decoded) changed together with bit 4 in the second defrost, and 15 to 22 s before it in the first. Candidate: it belongs to the defrost, but its timing against bit 4 is not constant.
 - `0864` word 2 bit 3 and `07E4` word 16 (6 to 10 to 2 to 6) changed around the defrost. Candidates.
 - `0864` word 1 bit 5 (defrost using hot water heat) has not been seen. It may need a hot water cycle that was not running.
 - The service menu AVFROSTNING items KOMPR. STOPP and ENERGIPRIO.VV (`047E`, `047F`) are both 0 on this pump.
 - The reversing valve cannot be read directly from the pages seen so far. That a valve operates follows from the pressure, temperature and fan changes above, and is not proven.
+
+## Second defrost (26 November 2026, 18:12 to 18:17)
+
+Seen in the log and in the flow card, which showed "avfrostar" (outdoor -4 °C, expansion valve 100 %, supply and return equal, 0.3 A).
+
+| Signal | On | Off | Length |
+|---|---|---|---|
+| `0864` word 1 bit 4 | 18:12:53 | 18:17:35 | 4 min 42 s |
+| `082F` bit 2 | 18:12:47 | 18:17:28 | 4 min 41 s |
+| `0864` word 0 (`0000` to `0003`) | 18:12:53 | 18:17:35 | same as bit 4 |
+
+`082F` bit 2 came 6 s before bit 4 both at the start and at the end, as in the first defrost, so it is confirmed by a second defrost. Word 0 of `0864` followed bit 4 to the second this time (see above).
 
 For an animation or an automation, the safest trigger is bit 4 or `082F` bit 2, whichever comes first.
 

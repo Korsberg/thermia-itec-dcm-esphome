@@ -21,7 +21,7 @@ Observation window for "seen": 23 to 25 November 2026 (about two and a half days
 | TILLSATS FRYSSKYDD | `0461` | follows the display |
 | Calendar F1 to F4 active | `05BB`, `061D`, `067F`, `06E1` | F3 (quiet mode) seen on |
 | Active alarm | `085F` | all zero without an alarm; see [alarms.md](alarms.md) |
-| Alarm history 1 to 8 | `0884` | time per record; the type of the event is not known (see [alarms.md](alarms.md)) |
+| Alarm history 1 to 8 | `0884` | date and hour per record (minute not shown in v41d, always `:00`); the type of the event is not known (see [alarms.md](alarms.md)) |
 | Bus OK, Gateway armed | firmware | derived from last frame age and session state |
 
 ### Candidates
