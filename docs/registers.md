@@ -71,7 +71,7 @@ The ten runtime pages are sent in a ring, a full cycle about every 21 s. See [pr
 
 ### `0864`: status bits
 
-Word 0: **3** (bits 0 and 1) during the first captured defrost, 0 otherwise. It was the earliest signal of the defrost, 15 to 22 s before word 1 bit 4. Meaning of the individual bits not known. Candidate, see [defrost.md](defrost.md).
+Word 0: **3** (bits 0 and 1) during the first captured defrost, 0 otherwise. It was 15 to 22 s before word 1 bit 4 in the first defrost and at the same second as bit 4 in the second (26 Nov 18:12), so its timing is not constant. Meaning of the individual bits not known. Candidate, see [defrost.md](defrost.md).
 
 Word 1 (status bits):
 
