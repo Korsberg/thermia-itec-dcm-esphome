@@ -49,8 +49,10 @@ The ten runtime pages are sent in a ring, a full cycle about every 21 s. See [pr
 | 10 | Current (/10, A) | verified |
 | 11 | Fan speed (rpm) | verified |
 | 13 | Expansion valve steps (2000 = 100 %); percent = steps / 20 | verified (standby 2000 steps = 100 %; running 189 steps = 9 %) |
-| 15 | Contains `082F`; **bit 2 = defrost** | verified (three defrosts, see [defrost.md](defrost.md)) |
+| 15 | Contains `082F`; **bit 2 = defrost** (verified in four defrosts, see [defrost.md](defrost.md)). **Bit 9 (`0x0200`) = outdoor unit running** (compressor) | bit 2 verified; bit 9 verified (27 Nov, see below) |
 | 16 | High pressure (/10, bar) | verified (standby 7.1 bar; running 17.4 bar) |
+
+**`0820` word 15 bit 9 (`0x0200`), outdoor unit running.** Word 15 is `0021` with the compressor stopped and `0221` while it runs (`0225` during a defrost). In the log of 27 November (06:46 to 15:50) the bit was set in 1283 samples, and in 1281 of them the compressor was above 0 Hz. In all 215 samples where the bit was clear the frequency was 0 Hz. The two other samples with the bit set are the first sample after a start, where the bit comes on one sample before the frequency rises. Edges seen: on 06:59:18, off 09:01:22, on 09:34:08, off 14:23:52, on 14:54:31. It goes out about 2 min before and comes on about 1 min before `0864` word 1 bit 0 (heating active) changes. Compressor starts and run times can be counted from this bit.
 
 **SATT TEMP** (shown on the display next to BEKRÄFTAD TEMP) has no word of its own. It equals word 7 while the compressor runs and is 0 otherwise. It is derived in the firmware and was checked against the display at rest (0.0) and running (for example 27.5 and 27.5, 51.5 and 51.5 at 36 Hz). The display can be up to one 21 s sample ahead of Home Assistant.
 
@@ -71,7 +73,7 @@ The ten runtime pages are sent in a ring, a full cycle about every 21 s. See [pr
 
 ### `0864`: status bits
 
-Word 0: **3** (bits 0 and 1) during the first captured defrost, 0 otherwise. It was 15 to 22 s before word 1 bit 4 in the first defrost and at the same second as bit 4 in the second (26 Nov 18:12) and 22 s before it in the third (27 Nov 07:38), so its timing is not constant. Meaning of the individual bits not known. Candidate, see [defrost.md](defrost.md).
+Word 0: **3** (bits 0 and 1) during the first captured defrost, 0 otherwise. It was 15 to 22 s before word 1 bit 4 in the first defrost and at the same second as bit 4 in the second (26 Nov 18:12) 22 s before it in the third (27 Nov 07:38) and at the same second in the fourth (12:12:59), so its timing is not constant. Meaning of the individual bits not known. Candidate, see [defrost.md](defrost.md).
 
 Word 1 (status bits):
 
@@ -91,8 +93,8 @@ Word 2:
 
 | Bit | Meaning | Status |
 |---|---|---|
-| 0 | Compressor start phase (64 s and 127 s in two observed runs) | verified (live) |
-| 3 | Seen once, in the sample at the start of the first defrost (word 2 = 8) | candidate |
+| 0 | Compressor start phase (64 s and 127 s in two earlier runs; 81, 43 and 47 s on 27 Nov at 06:59, 09:34 and 14:54, ending when `0864` word 1 bit 0 comes on) | verified (live) |
+| 3 | Seen at the start of the first defrost (word 2 = 8) and at the start of the third (27 Nov 07:38:06 to 07:38:28, 22 s before bit 4 of word 1). Not seen at the fourth (12:12) | candidate |
 
 Word 3: 16 bits, all unknown. In every sample so far the value is `0x00F0` (bits 4 to 7 set, constant). Some of the bits may be the flow switch ("F" on the display), not proven.
 
