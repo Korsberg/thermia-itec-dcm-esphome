@@ -80,10 +80,20 @@ Seen in the log (ESP local time) with the session running V41e.
 
 Word 0 of `0864` came 22 s before bit 4 and was released together with it. Its timing against bit 4 is therefore still not constant (22 s before, together, 15 to 22 s before), so it stays a candidate.
 
-Both `0864` word 1 bit 4 and `082F` bit 2 have now been seen in three defrosts of 4 to 5 minutes each, with start and end matching to within one `0820` cycle. Both are **verified** as defrost signals.
+Both `0864` word 1 bit 4 and `082F` bit 2 have now been seen in four defrosts of 4 to 6 minutes each, with start and end matching to within one `0820` cycle. Both are **verified** as defrost signals.
 
 For an animation or an automation, use bit 4 or `082F` bit 2, either one. Do not rely on one of them being earlier.
 
 ## What is still wanted
 
 A photo of the pump's INFO UTEDEL display during a defrost, to compare the display values with the words above.
+
+## Fourth defrost (27 November 2026, 12:12 to 12:18)
+
+| Signal | On | Off | Length |
+|---|---|---|---|
+| `0864` word 1 bit 4 | 12:12:59 | 12:18:27 | 5 min 28 s |
+| `082F` bit 2 | 12:13:19 | 12:18:21 | 5 min 2 s |
+| `0864` word 0 (`0000` to `0003`) | 12:12:59 | 12:18:27 | same as bit 4 |
+
+`082F` bit 2 came 20 s after bit 4 at the start and 6 s before it at the end. Together with the earlier defrosts this shows that the order of the two bits is not fixed (7 s before, 6 s before, 7 s before and 20 s after), as `0820` arrives about every 21 s. `0864` word 0 and bit 4 came on in the same sample, as in the second defrost. `0864` word 2 bit 3 was not seen this time (see [registers.md](registers.md)).
