@@ -2,6 +2,18 @@
 
 Firmware history (the YAML will be published under `esphome/`).
 
+## v41f (27 November 2026, candidate, not published)
+
+- v41e plus gate-fail handling. Five failed isolation gates in a row no longer stop the session: the ACK of that page is still skipped, the session stays armed, the pump re-sends the page, and the alarm status shows `Gate-fel pågår` (token `OKÄNT`) while five or more failures in a row persist. The first clean page resets the counter. The log line `GATE_FAIL_LIMIT_REACHED` (at most once per 30 s) replaces the old stop.
+- The one known extra frame, `0A 83 21 F0 EA` (see [troubleshooting.md](docs/troubleshooting.md)), is only detected and logged (`KNOWN_EXTRA_FRAME_SEEN`, with a counter). It never makes the gate pass: the page is **not** ACKed because of it, because silence before the extra frame cannot be proven from UART data.
+- The bytes already read while judging the gate are kept for the `GATE_EXTRA_BYTES` diagnostic. The pump's own stop paths (an unknown runtime page) are unchanged. No TX change.
+- Tested on the host with a simulated UART (unit tests, integration scenarios S1 to S13 including 60 failures in a row, Home Assistant template tests). On the pump since 27 November 2026, 06:46: 8.5 hours without a gate failure, so the failure path itself has not yet been exercised on the pump. Not verified until it has been.
+
+## v41e (26 November 2026, candidate, not published)
+
+- v41d plus the alarm history shows the stored minute (`(kod N)` text now `dd-mm-yyyy hh:mm (kod N)`) instead of a fixed `:00`. The device is named `thermia-itec` with friendly name `Thermia iTec` (entity ids of an existing installation do not change, Home Assistant keys on the device).
+- Running on the pump since the evening of 26 November 2026. It stopped its session once, on 27 November at 02:04 (see [troubleshooting.md](docs/troubleshooting.md)), which led to v41f.
+
 ## v41d (26 November 2026, candidate, not published)
 
 - v41c plus a single bit policy for filter and text: `2143.9` and `2144.4` are treated as OEM condition inputs, never notify (token `INGET`) but are always shown as "OEM-ingång … (ej larm)". `2145.8` (HUB-KORT) and `2145.11` (ONLINE/LINK) are shown as candidates and do not notify. The text can say "inga aktiva bitar" only when all five words are zero. Every published alarm string is cut to 255 bytes on a UTF-8 boundary.
