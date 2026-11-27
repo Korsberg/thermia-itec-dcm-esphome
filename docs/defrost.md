@@ -48,7 +48,7 @@ At a defrost the last value of word 13 (2377 minutes, 39 h 37 min) is copied to 
 ## What this means
 
 - `0864` word 1 bit 4 = **defrost using building heat**: verified.
-- `0820` word 15 (`082F`) bit 2 = defrost flag in the outdoor unit data: verified. It was set 7 s before bit 4 and released 6 s before it, so it is the earlier signal of the two.
+- `0820` word 15 (`082F`) bit 2 = defrost flag in the outdoor unit data: verified. It was set 7 s before bit 4 in the first defrost, and set 6 s before and released 6 s before it in the second. In the third defrost it was set 7 s before and released 15 s after bit 4. `0820` arrives about every 12 s, so the order of the two bits is within the sampling error and neither is reliably the earlier signal.
 - `0870` word 11 = defrost count: verified. Words 12 and 13: behaviour verified as described above.
 - `0864` word 0 (value 3, bits not decoded) changed together with bit 4 in the second defrost, and 15 to 22 s before it in the first. Candidate: it belongs to the defrost, but its timing against bit 4 is not constant.
 - `0864` word 2 bit 3 and `07E4` word 16 (6 to 10 to 2 to 6) changed around the defrost. Candidates.
@@ -68,7 +68,21 @@ Seen in the log and in the flow card, which showed "avfrostar" (outdoor -4 °C, 
 
 `082F` bit 2 came 6 s before bit 4 both at the start and at the end, as in the first defrost, so it is confirmed by a second defrost. Word 0 of `0864` followed bit 4 to the second this time (see above).
 
-For an animation or an automation, the safest trigger is bit 4 or `082F` bit 2, whichever comes first.
+## Third defrost (27 November 2026, 07:38 to 07:43)
+
+Seen in the log (ESP local time) with the session running V41e.
+
+| Signal | On | Off | Length |
+|---|---|---|---|
+| `0864` word 1 bit 4 | 07:38:28 | 07:42:47 | 4 min 19 s |
+| `082F` bit 2 | 07:38:21 | 07:43:02 | 4 min 41 s |
+| `0864` word 0 (`0000` to `0003`) | 07:38:06 | 07:42:47 | 4 min 41 s |
+
+Word 0 of `0864` came 22 s before bit 4 and was released together with it. Its timing against bit 4 is therefore still not constant (22 s before, together, 15 to 22 s before), so it stays a candidate.
+
+Both `0864` word 1 bit 4 and `082F` bit 2 have now been seen in three defrosts of 4 to 5 minutes each, with start and end matching to within one `0820` cycle. Both are **verified** as defrost signals.
+
+For an animation or an automation, use bit 4 or `082F` bit 2, either one. Do not rely on one of them being earlier.
 
 ## What is still wanted
 

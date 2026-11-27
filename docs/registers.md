@@ -49,7 +49,7 @@ The ten runtime pages are sent in a ring, a full cycle about every 21 s. See [pr
 | 10 | Current (/10, A) | verified |
 | 11 | Fan speed (rpm) | verified |
 | 13 | Expansion valve steps (2000 = 100 %); percent = steps / 20 | verified (standby 2000 steps = 100 %; running 189 steps = 9 %) |
-| 15 | Contains `082F`; **bit 2 = defrost** | verified (first defrost, see [defrost.md](defrost.md)) |
+| 15 | Contains `082F`; **bit 2 = defrost** | verified (three defrosts, see [defrost.md](defrost.md)) |
 | 16 | High pressure (/10, bar) | verified (standby 7.1 bar; running 17.4 bar) |
 
 **SATT TEMP** (shown on the display next to BEKRÄFTAD TEMP) has no word of its own. It equals word 7 while the compressor runs and is 0 otherwise. It is derived in the firmware and was checked against the display at rest (0.0) and running (for example 27.5 and 27.5, 51.5 and 51.5 at 36 Hz). The display can be up to one 21 s sample ahead of Home Assistant.
@@ -71,7 +71,7 @@ The ten runtime pages are sent in a ring, a full cycle about every 21 s. See [pr
 
 ### `0864`: status bits
 
-Word 0: **3** (bits 0 and 1) during the first captured defrost, 0 otherwise. It was 15 to 22 s before word 1 bit 4 in the first defrost and at the same second as bit 4 in the second (26 Nov 18:12), so its timing is not constant. Meaning of the individual bits not known. Candidate, see [defrost.md](defrost.md).
+Word 0: **3** (bits 0 and 1) during the first captured defrost, 0 otherwise. It was 15 to 22 s before word 1 bit 4 in the first defrost and at the same second as bit 4 in the second (26 Nov 18:12) and 22 s before it in the third (27 Nov 07:38), so its timing is not constant. Meaning of the individual bits not known. Candidate, see [defrost.md](defrost.md).
 
 Word 1 (status bits):
 
@@ -81,7 +81,7 @@ Word 1 (status bits):
 | 1 | Hot water active | verified (live) |
 | 2 | Hot water top-up (legionella) | never seen set |
 | 3 | Pool heating | never seen set |
-| 4 | **Defrost using building heat** | verified (first defrost) |
+| 4 | **Defrost using building heat** | verified (three defrosts) |
 | 5 | Defrost using hot water heat | never seen set |
 | 6 | Outdoor stop (utestopp) | never seen set |
 | 7 | Cooling | never seen set |
