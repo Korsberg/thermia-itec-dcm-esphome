@@ -22,9 +22,9 @@ Reads the RS485 line (9600 baud, 8E1) and assembles Modbus RTU frames.
 
 - Checks the CRC of every frame and resynchronises on a frame header when the stream is out of step (about 6-10 % of frames here, normal).
 - Counts dropped and ambiguous frames.
-- Holds the **isolation gate**: a runtime page is acknowledged only if it arrived alone, with nothing else pending in the UART.
+- Holds the **isolation gate**: a runtime page is acknowledged only if it arrived alone, with nothing else pending in the UART. A page that fails the gate is not acknowledged, and nothing is ever acknowledged because of what else was on the line.
 
-Log lines: `RESYNC`, `RX_GATE_FAIL`, `GATE_FAIL_SKIP`, `GATE_EXTRA_BYTES` (v40e). See [troubleshooting.md](troubleshooting.md).
+Log lines: `RESYNC`, `RX_GATE_FAIL`, `GATE_FAIL_SKIP`, `GATE_EXTRA_BYTES` (v40e), `GATE_FAIL_LIMIT_REACHED` and `KNOWN_EXTRA_FRAME_SEEN` (v41f). See [troubleshooting.md](troubleshooting.md).
 
 ## 2. Gateway session and handshake
 
@@ -32,9 +32,9 @@ Makes the pump accept the ESP as its gateway and keeps the session alive.
 
 - Detects the pump's challenge (function 17) and calculates the answer. The calculation is checked against a known test vector at every boot.
 - Arms itself about 30 s after boot. It answers once per boot, plus a limited re-challenge after a pump restart (candidate in v40c to v40e).
-- Session rules: stop after 5 failed gates in a row, report waiting after 30 s without valid traffic (`SESSION_WAITING`), resume when clean traffic returns.
+- Session rules: up to v41e the session stopped after 5 failed gates in a row. From v41f it stays armed and the status shows `Gate-fel pågår` until a clean page arrives. It reports waiting after 30 s without valid traffic (`SESSION_WAITING`), resume when clean traffic returns.
 
-Log lines: `ARMED`, `CHALLENGE_RESPONSE_SENT`, `SESSION_WAITING`, `RECHALLENGE_ACCEPTED`, `CHALLENGE_NOT_ANSWERED`, `GATE_FAIL_LIMIT`. See [protocol-dcm.md](protocol-dcm.md).
+Log lines: `ARMED`, `CHALLENGE_RESPONSE_SENT`, `SESSION_WAITING`, `RECHALLENGE_ACCEPTED`, `CHALLENGE_NOT_ANSWERED`, `GATE_FAIL_LIMIT` (up to v41e). See [protocol-dcm.md](protocol-dcm.md).
 
 ## 3. Export and acknowledgements
 

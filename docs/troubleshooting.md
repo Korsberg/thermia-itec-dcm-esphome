@@ -14,9 +14,23 @@ The receiver resynchronised on a frame header. Over long runs this is about 6-10
 
 ## `RX_GATE_FAIL` and `GATE_FAIL_SKIP`
 
-Before ACKing a runtime page the firmware checks that the page arrived alone. If something else is pending in the UART, that one ACK is skipped (`GATE_FAIL_SKIP streak=N`), the session is kept and the pump re-sends the page. After 5 failures in a row the session stops (`GATE_FAIL_LIMIT`).
+Before ACKing a runtime page the firmware checks that the page arrived alone. If something else is pending in the UART, that one ACK is skipped (`GATE_FAIL_SKIP streak=N`), the session is kept and the pump re-sends the page. Up to v41e the session stopped after 5 failures in a row (`GATE_FAIL_LIMIT`). From v41f it is kept (`GATE_FAIL_LIMIT_REACHED`, status `Gate-fel pågår`) and the pump keeps re-sending the page.
 
 This happened once in a long run: on 25 November at 10:04 the pump sent page `0820` five times in eight seconds, each time with 5 bytes pending in the UART (`uart=5`, `pending=0`, `drops=0`). The watchdog rebooted the ESP at 10:06:03 and the session was back after a pump restart, with all 31 pages exported at 10:14. It happened again on 25 November at 20:15 (five failures on page `0820`, `uart=5`, session stopped; single failures at 19:45 and 20:13 recovered on the pump's retry). Since v40c the ESP is not rebooted automatically, so it stayed stopped until the power was cycled and the pump restarted. The content of the 5 bytes is not known; v40e logs them (`GATE_EXTRA_BYTES`).
+
+### The 5 extra bytes are a frame: `0A 83 21 F0 EA` (27 November)
+
+On 27 November at 02:04:15 to 02:04:24 the gate failed five times in a row on page `0820` (45 raw bytes), about 2 s apart, as the pump retried. The session had run 4 h 33 min with 7229 runtime ACKs and stopped at 02:04:24 (v41e). Each time 5 bytes were pending in the UART (`uart=5`, `pending=0`, `drops=0`). v40e logged them and they were the same every time: `0A 83 21 F0 EA`.
+
+- The bytes are a **CRC-valid Modbus RTU frame**: slave `0x0A`, function `0x83` (the exception form of function 3), code `0x21`, CRC `F0 EA` (CRC16 of `0A 83 21`). So it is not line noise. Code `0x21` is not one of the standard Modbus exception codes.
+- Slave `0x0A` is not the gateway (`0x0F`). Who sent the frame is not known. The ESP does not transmit as slave `0x0A`.
+- The v40e diagnostic empties the UART at every failed gate, so the identical bytes arrived anew with each retry and were not left over from the previous one.
+- The terminator on the RS485 module had been removed 10.5 hours earlier (26 November 15:32). The event was not noise, so it does not show that the terminator matters either way.
+- On 25 November the same failure showed `uart=5` as well; the content was not logged then, so it is not proven to be the same frame.
+
+**What v41f does with it:** the frame is only recognised and logged (`KNOWN_EXTRA_FRAME_SEEN`). The page is **not** acknowledged because of it. Modbus RTU needs a silent gap of at least 3.5 character times (about 4 ms at 9600 8E1) between frames, and from the UART data alone the gap *before* the extra frame cannot be proven, so an ACK would be a guess. The ACK is skipped, the session is kept, and the pump retries.
+
+Whether the pump accepts an ACK delayed by several milliseconds, and whether a delay-free ACK would have let the pump carry on, is unknown. v41f has been on the pump since 27 November 06:46 and has not met the frame yet, so this behaviour is only tested on the host.
 
 ## Reconnecting the bus while the ESP is running (`MAILBOX_0708_GATE_FAIL`)
 
@@ -52,4 +66,4 @@ After the dashboard has been changed or Home Assistant restarted, graphs may sho
 
 ## Alarm status in Home Assistant (v41d and later)
 
-The summary sensor starts with `LARM|`, `INGET|` or `OKÄNT|`, followed by a status. `OKÄNT|Buss tyst` means no valid frame for 60 s: check the bus and the ESP. `OKÄNT|Session stoppad` or `Session väntar` means the bus is alive but the gateway session is not running (see the sections above). `Ingen läsning` or `Svar uteblir` means no alarm page has been read yet or the last request timed out; the next request follows after 300 s (900 s after three timeouts). `Gammal` means the last page is older than 11 minutes. Only `INGET|Aktuell` means that the alarm page was read recently while the session is up. The meaning of the bits is in [alarms.md](alarms.md).
+The summary sensor starts with `LARM|`, `INGET|` or `OKÄNT|`, followed by a status. `OKÄNT|Buss tyst` means no valid frame for 60 s: check the bus and the ESP. `OKÄNT|Gate-fel pågår` (v41f) means five or more isolation gates in a row have failed; the session is kept and the pump retries. `OKÄNT|Session stoppad` or `Session väntar` means the bus is alive but the gateway session is not running (see the sections above). `Ingen läsning` or `Svar uteblir` means no alarm page has been read yet or the last request timed out; the next request follows after 300 s (900 s after three timeouts). `Gammal` means the last page is older than 11 minutes. Only `INGET|Aktuell` means that the alarm page was read recently while the session is up. The meaning of the bits is in [alarms.md](alarms.md).
