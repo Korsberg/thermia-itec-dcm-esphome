@@ -97,3 +97,30 @@ A photo of the pump's INFO UTEDEL display during a defrost, to compare the displ
 | `0864` word 0 (`0000` to `0003`) | 12:12:59 | 12:18:27 | same as bit 4 |
 
 `082F` bit 2 came 20 s after bit 4 at the start and 6 s before it at the end. Together with the earlier defrosts this shows that the order of the two bits is not fixed (7 s before, 6 s before, 7 s before and 20 s after), as `0820` arrives about every 21 s. `0864` word 0 and bit 4 came on in the same sample, as in the second defrost. `0864` word 2 bit 3 was not seen this time (see [registers.md](registers.md)).
+
+## Fifth defrost (28 November 2026, 12:18 to 12:23), during hot water charging
+
+The first defrost seen while the pump was charging hot water (the charge ran 12:03 to 12:39). `0864` word 1 was `0x0022` during the defrost: **bit 1** (hot water active) and **bit 5** (the second defrost bit). In the four earlier defrosts, which all came during heating, bit 4 was set instead.
+
+| Signal | On | Off | Length |
+|---|---|---|---|
+| `0864` word 1 bit 5 (with bit 1) | 12:18:07 | 12:23:31 | 5 min 24 s |
+| `082F` bit 2 | 12:18:01 | 12:23:25 | 5 min 24 s |
+| `0864` word 0 (`0000` to `0001`) | 12:18:07 | 12:23:31 | same as bit 5 |
+
+`082F` bit 2 came 6 s before the `0864` bit, which fits the order not being fixed (`0820` arrives about every 21 s). Word 0 was `0001` this time, not `0003`, so its value changes with the mode and it stays a candidate. Bit 4 stayed 0 the whole time.
+
+The defrost counter (`0870` word 11) went from 869 to 870, and the "minutes between" word (word 12) became 409, the last value of word 13 before the defrost (408 to 409), as in the earlier defrosts.
+
+**Where the heat comes from.** During the defrost the heating side cooled and the hot water tank was not touched:
+
+| Time | Supply | Return | Tank (system, `07D0` word 9) | Hot water top |
+|---|---|---|---|---|
+| 12:17:53 (before) | 48 | 43 | 34 | 52 |
+| 12:19:39 | 43 | 43 | 31 | 52 |
+| 12:21:30 | 32 | 37 | 27 | 52 |
+| 12:23:38 (end) | 24 | 33 | 26 | 52 |
+
+Supply dropped by 24 degrees and the system tank by 8, while hot water top stayed at 52. The defrost therefore takes its heat from the heating circuit and the buffer, also when it comes during hot water charging. Bits 4 and 5 tell **which mode the pump was in** when the defrost started, not where the heat comes from.
+
+Both defrost flags are verified: bit 4 (during heating) and bit 5 (during hot water charging). `082F` bit 2 is set in both cases.
