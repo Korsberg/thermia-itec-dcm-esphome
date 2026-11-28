@@ -2,6 +2,13 @@
 
 Firmware history (the YAML will be published under `esphome/`).
 
+## v41g (28 November 2026, candidate, not published)
+
+- v41f plus observation only, no change to the bus behaviour and no TX change. New Home Assistant entities: binary sensor `Utedel i drift (0820 b9)` (outdoor unit running, `0820` word 15 bit 9), sensor `Varmvatten viktad (kandidat)` (`0848` word 9), and the two diagnostics `DCM gate failures in a row` and `DCM known extra frames seen`.
+- The `OBSERVE_V22` log line now ends with `heap_free`, `heap_min` and `heap_block` (internal heap, from `heap_caps_*`).
+- Existing entity names are unchanged, so entity ids in Home Assistant stay the same. The defrost sensor keeps its old name with "kandidat" even though it is verified.
+- Tested on the host with a simulated UART (scenarios S1 to S14, entity name checks, Home Assistant template tests). On the pump since 28 November 2026, 08:58: heap free about 231 kB, minimum 208 kB, largest block 188 kB, no gate failures.
+
 ## v41f (27 November 2026, candidate, not published)
 
 - v41e plus gate-fail handling. Five failed isolation gates in a row no longer stop the session: the ACK of that page is still skipped, the session stays armed, the pump re-sends the page, and the alarm status shows `Gate-fel pågår` (token `OKÄNT`) while five or more failures in a row persist. The first clean page resets the counter. The log line `GATE_FAIL_LIMIT_REACHED` (at most once per 30 s) replaces the old stop.
