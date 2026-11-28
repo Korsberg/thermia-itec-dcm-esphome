@@ -63,6 +63,8 @@ RO --+-- 4.7k --+-- GPIO18
 
 This gives about 5 V x 4.7 / (2.35 + 4.7) = 3.3 V at GPIO18. DI and DE/RE are driven directly from the 3.3 V GPIOs, which the MAX485 accepts as a logic high.
 
+Make the connections solid: solder the wires or use screw terminals or locking connectors, especially RO. A loose jumper wire can leave the ESP deaf and the pump then shows a communication alarm, see [troubleshooting.md](docs/troubleshooting.md).
+
 Connect to the pump's gateway (DCM) RS485 port. Do not connect while the pump is running a service operation, and use it at your own risk.
 
 ## Getting started
