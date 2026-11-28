@@ -49,7 +49,7 @@ The ten runtime pages are sent in a ring, a full cycle about every 21 s. See [pr
 | 10 | Current (/10, A) | verified |
 | 11 | Fan speed (rpm) | verified |
 | 13 | Expansion valve steps (2000 = 100 %); percent = steps / 20 | verified (standby 2000 steps = 100 %; running 189 steps = 9 %) |
-| 15 | Contains `082F`; **bit 2 = defrost** (verified in four defrosts, see [defrost.md](defrost.md)). **Bit 9 (`0x0200`) = outdoor unit running** (compressor) | bit 2 verified; bit 9 verified (27 Nov, see below) |
+| 15 | Contains `082F`; **bit 2 = defrost** (verified in five defrosts, see [defrost.md](defrost.md)). **Bit 9 (`0x0200`) = outdoor unit running** (compressor) | bit 2 verified; bit 9 verified (27 Nov, see below) |
 | 16 | High pressure (/10, bar) | verified (standby 7.1 bar; running 17.4 bar) |
 
 **`0820` word 15 bit 9 (`0x0200`), outdoor unit running.** Word 15 is `0021` with the compressor stopped and `0221` while it runs (`0225` during a defrost). In the log of 27 November (06:46 to 15:50) the bit was set in 1283 samples, and in 1281 of them the compressor was above 0 Hz. In all 215 samples where the bit was clear the frequency was 0 Hz. The two other samples with the bit set are the first sample after a start, where the bit comes on one sample before the frequency rises. Edges seen: on 06:59:18, off 09:01:22, on 09:34:08, off 14:23:52, on 14:54:31. It goes out about 2 min before and comes on about 1 min before `0864` word 1 bit 0 (heating active) changes. Compressor starts and run times can be counted from this bit.
@@ -84,8 +84,8 @@ Word 1 (status bits):
 | 1 | Hot water active | verified (live) |
 | 2 | Hot water top-up (legionella) | never seen set |
 | 3 | Pool heating | never seen set |
-| 4 | **Defrost using building heat** | verified (three defrosts) |
-| 5 | Defrost using hot water heat | never seen set |
+| 4 | **Defrost during heating** (the profile calls it defrost using building heat) | verified (four defrosts) |
+| 5 | **Defrost during hot water charging** (the profile calls it defrost using hot water heat; the heat was taken from the heating side, see [defrost.md](defrost.md)) | verified (one defrost, 28 November) |
 | 6 | Outdoor stop (utestopp) | never seen set |
 | 7 | Cooling | never seen set |
 | 9 | Concrete drying | never seen set |

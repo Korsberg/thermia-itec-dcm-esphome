@@ -14,8 +14,9 @@ Observation window for "seen": 23 to 28 November 2026 (about five days of histor
 |---|---|---|
 | Heating active (building) | `0864` word 1 bit 0 | follows the pump |
 | Hot water active | `0864` word 1 bit 1 | follows hot water charging (seen in several charges) |
-| **Defrost using building** | `0864` word 1 bit 4 | seen in four captured defrosts, see [defrost.md](defrost.md) |
-| **Defrost, outdoor unit flag** | `0820` word 15 (`082F`) bit 2 | seen in four captured defrosts; the order against bit 4 varies |
+| **Defrost during heating** (bit 4) | `0864` word 1 bit 4 | seen in four captured defrosts, all during heating, see [defrost.md](defrost.md) |
+| **Defrost during hot water charging** (bit 5) | `0864` word 1 bit 5 | seen in one defrost, 28 November 12:18 to 12:23, together with bit 1 |
+| **Defrost, outdoor unit flag** | `0820` word 15 (`082F`) bit 2 | seen in all five captured defrosts; the order against bit 4 or 5 varies |
 | **Outdoor unit running** (`Utedel i drift`, v41g) | `0820` word 15 bit 9 (`0x0200`) | set while the compressor runs (1281 of 1283 samples on 27 November), see [registers.md](registers.md) |
 | Compressor start phase | `0864` word 2 bit 0 | 43 to 127 s before heating comes on, in five runs |
 | High power (HÖG EFFEKT) | `03F3` | follows the display |
@@ -39,7 +40,7 @@ Observation window for "seen": 23 to 28 November 2026 (about five days of histor
 
 ### Never seen set
 
-Hot water top-up (`0864` word 1 bit 2; a full charge on 27 November, top 60 and middle 57 degrees, did not set it), pool heating (bit 3), defrost using hot water (bit 5), outdoor stop (bit 6), cooling (bit 7), concrete drying (bit 9), calendar F1, F2 and F4 active, KOMPR. STOPP and ENERGIPRIO.VV (service menu AVFROSTNING, `047E`, `047F`; both 0 and not changed), and all eight alarm slots.
+Hot water top-up (`0864` word 1 bit 2; a full charge on 27 November, top 60 and middle 57 degrees, did not set it), pool heating (bit 3), outdoor stop (bit 6), cooling (bit 7), concrete drying (bit 9), calendar F1, F2 and F4 active, KOMPR. STOPP and ENERGIPRIO.VV (service menu AVFROSTNING, `047E`, `047F`; both 0 and not changed), and all eight alarm slots.
 
 ### Unknown
 
