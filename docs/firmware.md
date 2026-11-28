@@ -60,8 +60,8 @@ Status of every sensor (verified, candidate, never seen, unknown): [sensors.md](
 
 Not read from the pump.
 
-- ESP32 status: heap, largest free block, minimum free, PSRAM, loop time, uptime, reset reason, chip temperature, Wi-Fi.
-- Gateway health: bus OK, armed, time since last frame, frames seen, resync share, counters of pages and ACKs.
+- ESP32 status: heap, largest free block, minimum free, PSRAM, loop time, uptime, reset reason, chip temperature, Wi-Fi. From v41g the `OBSERVE_V22` log line also carries `heap_free`, `heap_min` and `heap_block`.
+- Gateway health: bus OK, armed, time since last frame, frames seen, resync share, counters of pages and ACKs. From v41g also gate failures in a row and known extra frames seen as Home Assistant sensors.
 - The event log used for fault finding. A read-only capability report for other pump models is planned.
 
 ## Step by step: from a pump start to sensors in Home Assistant

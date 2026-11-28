@@ -68,7 +68,8 @@ The ten runtime pages are sent in a ring, a full cycle about every 21 s. See [pr
 |---|---|---|
 | 0 | Heat demand in degree-minutes (sign inverted) | verified |
 | 1, 2 | Setpoint in brackets after TANK on DRIFTDATA (for example "TANK 26 (29)"); both 29 at the same time | likely (one reading) |
-| 3, 4 | Unknown | unknown |
+| 3, 4 | Always equal (41 and 42 in 3636 samples, 27 to 28 November). Probably a desired temperature; not confirmed | candidate |
+| 9 | Weighted hot water temperature: 45 to 58 in 3636 samples, always between hot water middle and top (`07D0` words 4 and 3) | candidate |
 | 16 to 22 | Pump clock | verified |
 
 ### `0864`: status bits
