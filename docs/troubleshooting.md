@@ -40,6 +40,25 @@ Restarting only the ESP did not help: it armed itself, the pump sent nothing but
 
 Safer order when changing the module: stop the ESP first, change the module, start the ESP, wait for `ARMED`, then restart the pump (see the first section).
 
+## The bus goes silent and the pump shows `KOMM.FEL ONLINE/LINK` (28 November 2026)
+
+**Check the wires first, RO above all.** The ESP heard nothing after a normal exchange, did not acknowledge, and the pump raised the communication alarm. The cause was a loose RO wire on the RS485 module.
+
+What it looked like:
+
+- Everything normal up to a given second (polls every 4.3 s, resync about 10 %, no dropped frames, no gate failures), then nothing: no poll, no page, no error.
+- The log shows only `SESSION_WAITING` (30 s) and `SESSION_WAITING_LONG` (90 s) and keeps the session. In Home Assistant `Bus OK` goes off and `Time since last frame` keeps growing. The ESP itself is not restarted.
+- The pump shows `LARM KOMM.FEL ONLINE/LINK` (alarm bit `2145.11`). The alarm comes **after** the silence, so it is a result and not the cause. It can be acknowledged on the display.
+- An earlier gap of 102 s (27 November) with the same pattern, which cleared by itself, was probably the same loose contact.
+
+What to do:
+
+1. Check RO, A, B, GND and the supply on the module (a plug-in jumper wire can lose contact). A loose RO leaves the ESP deaf while the pump keeps sending.
+2. When the frames are back, the pump still has to open the gateway session again. It sends its challenge only when it starts (it repeated it three times within 10 s in this case). If the ESP was not armed by then, **restart the pump once more** when the ESP is armed (`ARMED` in the log, `Gateway armed` on in Home Assistant, about 30 s after traffic returns). If the ESP is powered from the pump, a power cycle of the pump also restarts the ESP, so restart the pump itself if you can.
+3. Expect `CHALLENGE_RESPONSE_SENT`, then 31 configuration pages and the runtime ring.
+
+Avoid the problem: solder the wires or use screw terminals or locking connectors, at least for RO and the RS485 pair. The bus itself tolerated an open A to B reading (no terminator on the short bus) without errors.
+
 ## `SESSION_WAITING` and `SESSION_WAITING_LONG` (v40c and later)
 
 No valid traffic for 30 s (90 s for the long form). The ESP keeps the session and resumes when clean traffic returns (`SESSION_RESUMED`). If the pump was restarted while the ESP was running, the new challenge is answered after 30 s of waiting (`RECHALLENGE_ACCEPTED`), at most three times per boot; if it is not answered, `CHALLENGE_NOT_ANSWERED` says why. This was added in v40c and v40d and is still being tested.
